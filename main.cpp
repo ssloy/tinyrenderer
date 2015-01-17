@@ -15,14 +15,22 @@ void line(int x0, int y0, int x1, int y1, TGAImage &image, TGAColor color) {
         std::swap(x0, x1);
         std::swap(y0, y1);
     }
-
+    int dx = x1-x0;
+    int dy = y1-y0;
+    float derror = std::abs(dy/float(dx));
+    float error = 0;
+    int y = y0;
     for (int x=x0; x<=x1; x++) {
-        float t = (x-x0)/(float)(x1-x0);
-        int y = y0*(1.-t) + y1*t;
         if (steep) {
-            image.set(y, x, color);
+            image.set(y, x, TGAColor(255, 1));
         } else {
-            image.set(x, y, color);
+            image.set(x, y, TGAColor(255, 1));
+        }
+        error += derror;
+
+        if (error>.5) {
+            y += (y1>y0?1:-1);
+            error -= 1.;
         }
     }
 }
