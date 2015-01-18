@@ -39,9 +39,9 @@ void triangle(Vec2i t0, Vec2i t1, Vec2i t2, TGAImage &image, TGAColor color) {
     int total_height = t2.y-t0.y;
     for (int i=0; i<total_height; i++) {
         bool second_half = i>t1.y-t0.y || t1.y==t0.y;
-        int seg_height = second_half ? t2.y-t1.y : t1.y-t0.y;
+        int segment_height = second_half ? t2.y-t1.y : t1.y-t0.y;
         float alpha = (float)i/total_height;
-        float beta  = (float)(i-(second_half ? t1.y-t0.y : 0))/seg_height; // be careful: with above conditions no division by zero here
+        float beta  = (float)(i-(second_half ? t1.y-t0.y : 0))/segment_height; // be careful: with above conditions no division by zero here
         Vec2i A =               t0 + (t2-t0)*alpha;
         Vec2i B = second_half ? t1 + (t2-t1)*beta : t0 + (t1-t0)*beta;
         if (A.x>B.x) std::swap(A, B);
