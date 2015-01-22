@@ -24,17 +24,16 @@ void triangle(Vec3i t0, Vec3i t1, Vec3i t2, TGAImage &image, TGAColor color, int
         int segment_height = second_half ? t2.y-t1.y : t1.y-t0.y;
         float alpha = (float)i/total_height;
         float beta  = (float)(i-(second_half ? t1.y-t0.y : 0))/segment_height; // be careful: with above conditions no division by zero here
-        Vec3i A =               t0 + (t2-t0)*alpha;
-        Vec3i B = second_half ? t1 + (t2-t1)*beta : t0 + (t1-t0)*beta;
+        Vec3i A =               t0 + Vec3f(t2-t0)*alpha;
+        Vec3i B = second_half ? t1 + Vec3f(t2-t1)*beta : t0 + Vec3f(t1-t0)*beta;
         if (A.x>B.x) std::swap(A, B);
         for (int j=A.x; j<=B.x; j++) {
             float phi = B.x==A.x ? 1. : (float)(j-A.x)/(float)(B.x-A.x);
-            Vec3i P = A + (B-A)*phi;
-            P.x = j; P.y = t0.y+i; // a hack to fill holes (due to int cast precision problems)
-            int idx = j+(t0.y+i)*width;
+            Vec3i P = Vec3f(A) + Vec3f(B-A)*phi;
+            int idx = P.x+P.y*width;
             if (zbuffer[idx]<P.z) {
                 zbuffer[idx] = P.z;
-                image.set(P.x, P.y, color); // attention, due to int casts t0.y+i != A.y
+                image.set(P.x, P.y, color);
             }
         }
     }
