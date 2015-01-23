@@ -5,7 +5,7 @@
 #include <vector>
 #include "model.h"
 
-Model::Model(const char *filename) : verts_(), faces_(), norms_(), uv_() {
+Model::Model(const char *filename) : verts_(), faces_(), norms_(), uv_(), diffusemap_() {
     std::ifstream in;
     in.open (filename, std::ifstream::in);
     if (in.fail()) return;

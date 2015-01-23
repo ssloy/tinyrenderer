@@ -14,19 +14,6 @@ int *zbuffer = NULL;
 Vec3f light_dir(0,0,-1);
 Vec3f camera(0,0,3);
 
-Vec3f m2v(Matrix m) {
-    return Vec3f(m[0][0]/m[3][0], m[1][0]/m[3][0], m[2][0]/m[3][0]);
-}
-
-Matrix v2m(Vec3f v) {
-    Matrix m(4, 1);
-    m[0][0] = v.x;
-    m[1][0] = v.y;
-    m[2][0] = v.z;
-    m[3][0] = 1.f;
-    return m;
-}
-
 Matrix viewport(int x, int y, int w, int h) {
     Matrix m = Matrix::identity(4);
     m[0][3] = x+w/2.f;
@@ -57,14 +44,13 @@ void triangle(Vec3i t0, Vec3i t1, Vec3i t2, Vec2i uv0, Vec2i uv1, Vec2i uv2, TGA
         Vec2i uvB = second_half ? uv1 +      (uv2-uv1)*beta : uv0 +      (uv1-uv0)*beta;
         if (A.x>B.x) { std::swap(A, B); std::swap(uvA, uvB); }
         for (int j=A.x; j<=B.x; j++) {
-            float phi = B.x==A.x ? 1. : (float)(j-A.x)/(float)(B.x-A.x);
+            float phi = B.x==A.x ? 1. : (float)(j-A.x)/(B.x-A.x);
             Vec3i   P = Vec3f(A) + Vec3f(B-A)*phi;
             Vec2i uvP =     uvA +   (uvB-uvA)*phi;
             int idx = P.x+P.y*width;
             if (zbuffer[idx]<P.z) {
                 zbuffer[idx] = P.z;
-                TGAColor color = model->diffuse(uvP);
-                image.set(P.x, P.y, TGAColor(color.r*intensity, color.g*intensity, color.b*intensity));
+                image.set(P.x, P.y, model->diffuse(uvP)*intensity);
             }
         }
     }
@@ -94,7 +80,7 @@ int main(int argc, char** argv) {
             Vec3f world_coords[3];
             for (int j=0; j<3; j++) {
                 Vec3f v = model->vert(face[j]);
-                screen_coords[j] =  m2v(ViewPort*Projection*v2m(v));
+                screen_coords[j] =  Vec3f(ViewPort*Projection*Matrix(v));
                 world_coords[j]  = v;
             }
             Vec3f n = (world_coords[2]-world_coords[0])^(world_coords[1]-world_coords[0]);
