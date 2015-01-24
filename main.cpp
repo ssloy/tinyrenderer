@@ -37,7 +37,7 @@ Matrix lookat(Vec3f eye, Vec3f center, Vec3f up) {
         res[0][i] = x[i];
         res[1][i] = y[i];
         res[2][i] = z[i];
-        res[3][i] = center[i];
+        res[i][3] = -center[i];
     }
     return res;
 }
@@ -87,10 +87,15 @@ int main(int argc, char** argv) {
 
     { // draw the model
         Matrix ModelView  = lookat(eye, center, Vec3f(0,1,0));
-        std::cerr << ModelView << std::endl;
         Matrix Projection = Matrix::identity(4);
         Matrix ViewPort   = viewport(width/8, height/8, width*3/4, height*3/4);
         Projection[3][2] = -1.f/(eye-center).norm();
+
+        std::cerr << ModelView << std::endl;
+        std::cerr << Projection << std::endl;
+        std::cerr << ViewPort << std::endl;
+        Matrix z = (ViewPort*Projection*ModelView);
+        std::cerr << z << std::endl;
 
         TGAImage image(width, height, TGAImage::RGB);
         for (int i=0; i<model->nfaces(); i++) {
