@@ -37,7 +37,7 @@ struct TGAColor {
         bgra[3] = A;
     }
 
-    TGAColor(unsigned char v, unsigned char bpp) : bgra(), bytespp(bpp) {
+    TGAColor(unsigned char v) : bgra(), bytespp(1) {
         for (int i=0; i<4; i++) bgra[i] = 0;
         bgra[0] = v;
     }
@@ -54,6 +54,7 @@ struct TGAColor {
 
     TGAColor operator *(float intensity) const {
         TGAColor res = *this;
+        intensity = (intensity>1.f?1.f:(intensity<0.f?0.f:intensity));
         for (int i=0; i<4; i++) res.bgra[i] = bgra[i]*intensity;
         return res;
     }
