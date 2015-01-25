@@ -2,6 +2,7 @@
 #define __MODEL_H__
 
 #include <vector>
+#include <string>
 #include "geometry.h"
 #include "tgaimage.h"
 
@@ -19,10 +20,11 @@ public:
     ~Model();
     int nverts();
     int nfaces();
-    Vec3f norm(int iface, int nvert);
-    Vec3f norm(Vec2i uv);
+    Vec3f normal(int iface, int nthvert);
+    Vec3f normal(Vec2i uv);
     Vec3f vert(int i);
-    Vec2i uv(int iface, int nvert);
+    Vec3f vert(int iface, int nthvert);
+    Vec2i uv(int iface, int nthvert);
     TGAColor diffuse(Vec2i uv);
     std::vector<int> face(int idx);
 };

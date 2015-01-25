@@ -1,8 +1,5 @@
 #include <vector>
-#include <cstdlib>
 #include <iostream>
-#include <cmath>
-#include <limits>
 #include "tgaimage.h"
 #include "model.h"
 #include "geometry.h"
@@ -16,23 +13,29 @@ Vec3f light_dir = Vec3f(1,1,1).normalize();
 Vec3f eye(1,1,3);
 Vec3f center(0,0,0);
 
-
 struct Shader : public IShader {
     virtual ~Shader() {}
     Vec2i varying_uv[3];
     float varying_inty[3];
+
+    virtual Vec3i vertex(int iface, int nthvert) {
+        varying_inty[nthvert] = model->normal(iface, nthvert)*light_dir;
+        varying_uv[nthvert]   = model->uv(iface, nthvert);
+        Vec3f v = model->vert(iface, nthvert);
+        Vec3f gl_Position = Viewport*Projection*ModelView*Matrix(v);
+        return gl_Position;
+    }
 
     virtual bool fragment(Vec3f bar, TGAColor &color) {
         Vec2i uv   = varying_uv[0]*bar.x + varying_uv[1]*bar.y + varying_uv[2]*bar.z;
 //        float inty = varying_inty[0]*bar.x + varying_inty[1]*bar.y + varying_inty[2]*bar.z;
  //       inty = std::max(0.f, std::min(1.f, inty));
 //        color = model->diffuse(uv)*inty;
-        float inty = model->norm(uv)*light_dir;
+        float inty = model->normal(uv)*light_dir;
         color = model->diffuse(uv)*inty;
         return false;
     }
 };
-
 
 int main(int argc, char** argv) {
     if (2==argc) {
@@ -48,15 +51,9 @@ int main(int argc, char** argv) {
     TGAImage image(width, height, TGAImage::RGB);
     Shader shader;
     for (int i=0; i<model->nfaces(); i++) {
-        std::vector<int> face = model->face(i);
         Vec3i screen_coords[3];
-        Vec3f world_coords[3];
         for (int j=0; j<3; j++) {
-            Vec3f v = model->vert(face[j]);
-            screen_coords[j] =  Vec3f(Viewport*Projection*ModelView*Matrix(v));
-            world_coords[j]  = v;
-            shader.varying_inty[j] = model->norm(i, j)*light_dir;
-            shader.varying_uv[j]   = model->uv(i, j);
+            screen_coords[j] = shader.vertex(i, j);
         }
         triangle(screen_coords, shader, image, zbuffer);
     }

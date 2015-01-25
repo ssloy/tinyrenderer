@@ -1,7 +1,4 @@
-#include <vector>
 #include <cassert>
-#include <cmath>
-#include <iostream>
 #include "geometry.h"
 
 template <> Vec3<float>::Vec3(Matrix m) : x(m[0][0]/m[3][0]), y(m[1][0]/m[3][0]), z(m[2][0]/m[3][0]) {}
@@ -13,7 +10,6 @@ Matrix::Matrix(Vec3f v) : m(std::vector<std::vector<float> >(4, std::vector<floa
     m[1][0] = v.y;
     m[2][0] = v.z;
 }
-
 
 Matrix::Matrix(int r, int c) : m(std::vector<std::vector<float> >(r, std::vector<float>(c, 0.f))), rows(r), cols(c) { }
 

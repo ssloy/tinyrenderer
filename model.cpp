@@ -1,8 +1,6 @@
 #include <iostream>
-#include <string>
 #include <fstream>
 #include <sstream>
-#include <vector>
 #include "model.h"
 
 Model::Model(const char *filename) : verts_(), faces_(), norms_(), uv_(), diffusemap_(), normalmap_() {
@@ -45,8 +43,7 @@ Model::Model(const char *filename) : verts_(), faces_(), norms_(), uv_(), diffus
     load_texture(filename, "_nm.tga",      normalmap_);
 }
 
-Model::~Model() {
-}
+Model::~Model() {}
 
 int Model::nverts() {
     return (int)verts_.size();
@@ -66,6 +63,10 @@ Vec3f Model::vert(int i) {
     return verts_[i];
 }
 
+Vec3f Model::vert(int iface, int nthvert) {
+    return verts_[faces_[iface][nthvert][0]];
+}
+
 void Model::load_texture(std::string filename, const char *suffix, TGAImage &img) {
     std::string texfile(filename);
     size_t dot = texfile.find_last_of(".");
@@ -80,7 +81,7 @@ TGAColor Model::diffuse(Vec2i uv) {
     return diffusemap_.get(uv.x, uv.y);
 }
 
-Vec3f Model::norm(Vec2i uv) {
+Vec3f Model::normal(Vec2i uv) {
     TGAColor c = normalmap_.get(uv.x, uv.y);
     Vec3f res;
     for (int i=0; i<3; i++)
@@ -88,14 +89,13 @@ Vec3f Model::norm(Vec2i uv) {
     return res;
 }
 
-Vec2i Model::uv(int iface, int nvert) {
-    int idx = faces_[iface][nvert][1];
+Vec2i Model::uv(int iface, int nthvert) {
+    int idx = faces_[iface][nthvert][1];
     return Vec2i(uv_[idx].x*diffusemap_.get_width(), uv_[idx].y*diffusemap_.get_height());
 }
 
-Vec3f Model::norm(int iface, int nvert) {
-    int idx = faces_[iface][nvert][2];
+Vec3f Model::normal(int iface, int nthvert) {
+    int idx = faces_[iface][nthvert][2];
     return norms_[idx].normalize();
 }
-
 

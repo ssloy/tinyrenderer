@@ -1,49 +1,37 @@
-#include <vector>
-#include <cstdlib>
-#include <iostream>
 #include <cmath>
 #include <limits>
-#include "tgaimage.h"
-#include "model.h"
-#include "geometry.h"
 #include "our_gl.h"
 
 Matrix ModelView;
 Matrix Viewport;
 Matrix Projection;
 
-Matrix viewport(int x, int y, int w, int h) {
-    Matrix m = Matrix::identity(4);
-    m[0][3] = x+w/2.f;
-    m[1][3] = y+h/2.f;
-    m[2][3] = 255.f/2.f;
-
-    m[0][0] = w/2.f;
-    m[1][1] = h/2.f;
-    m[2][2] = 255.f/2.f;
-    Viewport = m;
-    return m;
+void viewport(int x, int y, int w, int h) {
+    Viewport = Matrix::identity(4);
+    Viewport[0][3] = x+w/2.f;
+    Viewport[1][3] = y+h/2.f;
+    Viewport[2][3] = 255.f/2.f;
+    Viewport[0][0] = w/2.f;
+    Viewport[1][1] = h/2.f;
+    Viewport[2][2] = 255.f/2.f;
 }
 
-Matrix projection(float coeff) {
+void projection(float coeff) {
     Projection = Matrix::identity(4);
     Projection[3][2] = coeff;
-    return Projection;
 }
 
-Matrix lookat(Vec3f eye, Vec3f center, Vec3f up) {
+void lookat(Vec3f eye, Vec3f center, Vec3f up) {
     Vec3f z = (eye-center).normalize();
     Vec3f x = (up^z).normalize();
     Vec3f y = (z^x).normalize();
-    Matrix res = Matrix::identity(4);
+    ModelView = Matrix::identity(4);
     for (int i=0; i<3; i++) {
-        res[0][i] = x[i];
-        res[1][i] = y[i];
-        res[2][i] = z[i];
-        res[i][3] = -center[i];
+        ModelView[0][i] = x[i];
+        ModelView[1][i] = y[i];
+        ModelView[2][i] = z[i];
+        ModelView[i][3] = -center[i];
     }
-    ModelView = res;
-    return res;
 }
 
 Vec3f barycentric(Vec3i A, Vec3i B, Vec3i C, Vec3i P) {
