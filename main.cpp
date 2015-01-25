@@ -27,7 +27,7 @@ struct Shader : public IShader {
     }
 
     virtual bool fragment(Vec3f bar, TGAColor &color) {
-        Vec2i uv   = varying_uv[0]*bar.x + varying_uv[1]*bar.y + varying_uv[2]*bar.z;
+        Vec2i uv   = varying_uv[0]*bar[0] + varying_uv[1]*bar[1] + varying_uv[2]*bar[2];
 //        float inty = varying_inty[0]*bar.x + varying_inty[1]*bar.y + varying_inty[2]*bar.z;
  //       inty = std::max(0.f, std::min(1.f, inty));
 //        color = model->diffuse(uv)*inty;

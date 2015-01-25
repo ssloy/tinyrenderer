@@ -35,8 +35,8 @@ void lookat(Vec3f eye, Vec3f center, Vec3f up) {
 }
 
 Vec3f barycentric(Vec3i A, Vec3i B, Vec3i C, Vec3i P) {
-    Vec3f u = Vec3f(C.x-A.x, B.x-A.x, A.x-P.x)^Vec3f(C.y-A.y, B.y-A.y, A.y-P.y);
-    return std::abs(u.z)>.5 ? Vec3f(1.f-(u.x+u.y)/u.z, u.y/u.z, u.x/u.z) : Vec3f(-1,1,1); // dont forget that u.z is an integer. If it is zero then triangle ABC is degenerate
+    Vec3f u = Vec3f(C[0]-A[0], B[0]-A[0], A[0]-P[0])^Vec3f(C[1]-A[1], B[1]-A[1], A[1]-P[1]);
+    return std::abs(u[2])>.5 ? Vec3f(1.f-(u[0]+u[1])/u[2], u[1]/u[2], u[0]/u[2]) : Vec3f(-1,1,1); // dont forget that u[2] is an integer. If it is zero then triangle ABC is degenerate
 }
 
 void triangle(Vec3i *pts, IShader &shader, TGAImage &image, TGAImage &zbuffer) {
@@ -49,16 +49,16 @@ void triangle(Vec3i *pts, IShader &shader, TGAImage &image, TGAImage &zbuffer) {
         }
     }
     Vec3i P;
-    for (P.x=bboxmin.x; P.x<=bboxmax.x; P.x++) {
-        for (P.y=bboxmin.y; P.y<=bboxmax.y; P.y++) {
+    for (P[0]=bboxmin[0]; P[0]<=bboxmax[0]; P[0]++) {
+        for (P[1]=bboxmin[1]; P[1]<=bboxmax[1]; P[1]++) {
             Vec3f c = barycentric(pts[0], pts[1], pts[2], P);
-            P.z = std::max(0, std::min(255, int(pts[0].z*c.x + pts[1].z*c.y + pts[2].z*c.z + .5))); // clamping to 0-255 since it is stored in unsigned char
-            if (c.x<0 || c.y<0 || c.z<0 || zbuffer.get(P.x, P.y)[0]>P.z) continue;
+            P[2] = std::max(0, std::min(255, int(pts[0][2]*c[0] + pts[1][2]*c[1] + pts[2][2]*c[2] + .5))); // clamping to 0-255 since it is stored in unsigned char
+            if (c[0]<0 || c[1]<0 || c[2]<0 || zbuffer.get(P[0], P[1])[0]>P[2]) continue;
             TGAColor color;
             bool discard = shader.fragment(c, color);
             if (!discard) {
-                zbuffer.set(P.x, P.y, TGAColor(P.z));
-                image.set(P.x, P.y, color);
+                zbuffer.set(P[0], P[1], TGAColor(P[2]));
+                image.set(P[0], P[1], color);
             }
         }
     }
