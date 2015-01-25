@@ -41,11 +41,9 @@ int main(int argc, char** argv) {
         model = new Model("obj/african_head.obj");
     }
 
-    Matrix ModelView  = lookat(eye, center, Vec3f(0,1,0));
-    Matrix ViewPort   = viewport(width/8, height/8, width*3/4, height*3/4);
-    Matrix Projection = Matrix::identity(4);
-    Projection[3][2] = -1.f/(eye-center).norm();
-    Matrix MVPVP    = ViewPort*Projection*ModelView;
+    lookat(eye, center, Vec3f(0,1,0));
+    viewport(width/8, height/8, width*3/4, height*3/4);
+    projection(-1.f/(eye-center).norm());
 
     TGAImage image(width, height, TGAImage::RGB);
     Shader shader;
@@ -55,18 +53,17 @@ int main(int argc, char** argv) {
         Vec3f world_coords[3];
         for (int j=0; j<3; j++) {
             Vec3f v = model->vert(face[j]);
-            screen_coords[j] =  Vec3f(ViewPort*Projection*ModelView*Matrix(v));
+            screen_coords[j] =  Vec3f(Viewport*Projection*ModelView*Matrix(v));
             world_coords[j]  = v;
             shader.varying_inty[j] = model->norm(i, j)*light_dir;
             shader.varying_uv[j]   = model->uv(i, j);
         }
-//        triangle(screen_coords[0], screen_coords[1], screen_coords[2], intensity[0], intensity[1], intensity[2], image, zbuffer);
         triangle(screen_coords, shader, image, zbuffer);
     }
-    image.flip_vertically(); // i want to have the origin at the left bottom corner of the image
+    image.flip_vertically();
     image.write_tga_file("output.tga");
 
-    zbuffer.flip_vertically(); // i want to have the origin at the left bottom corner of the image
+    zbuffer.flip_vertically();
     zbuffer.write_tga_file("zbuffer.tga");
     delete model;
     return 0;
