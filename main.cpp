@@ -21,8 +21,8 @@ struct Shader : public IShader {
     virtual Vec3i vertex(int iface, int nthvert) {
         varying_inty[nthvert] = model->normal(iface, nthvert)*light_dir;
         varying_uv[nthvert]   = model->uv(iface, nthvert);
-        Vec3f v = model->vert(iface, nthvert);
-        Vec3f gl_Position = Viewport*Projection*ModelView*Matrix(v);
+        Vec3f gl_Vertex = model->vert(iface, nthvert);
+        Vec3f gl_Position = Viewport*Projection*ModelView*Matrix(gl_Vertex);
         return gl_Position;
     }
 
