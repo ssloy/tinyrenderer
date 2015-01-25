@@ -5,7 +5,7 @@
 #include <vector>
 #include "model.h"
 
-Model::Model(const char *filename) : verts_(), faces_(), norms_(), uv_(), diffusemap_() {
+Model::Model(const char *filename) : verts_(), faces_(), norms_(), uv_(), diffusemap_(), normalmap_() {
     std::ifstream in;
     in.open (filename, std::ifstream::in);
     if (in.fail()) return;
@@ -42,6 +42,7 @@ Model::Model(const char *filename) : verts_(), faces_(), norms_(), uv_(), diffus
     }
     std::cerr << "# v# " << verts_.size() << " f# "  << faces_.size() << " vt# " << uv_.size() << " vn# " << norms_.size() << std::endl;
     load_texture(filename, "_diffuse.tga", diffusemap_);
+    load_texture(filename, "_nm.tga",      normalmap_);
 }
 
 Model::~Model() {
@@ -77,6 +78,14 @@ void Model::load_texture(std::string filename, const char *suffix, TGAImage &img
 
 TGAColor Model::diffuse(Vec2i uv) {
     return diffusemap_.get(uv.x, uv.y);
+}
+
+Vec3f Model::norm(Vec2i uv) {
+    TGAColor c = normalmap_.get(uv.x, uv.y);
+    Vec3f res;
+    for (int i=0; i<3; i++)
+        res[2-i] = (float)c[i]/255.f*2.f - 1.f;
+    return res;
 }
 
 Vec2i Model::uv(int iface, int nvert) {
