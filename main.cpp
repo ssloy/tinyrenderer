@@ -31,10 +31,11 @@ struct Shader : public IShader {
     }
 
     virtual bool fragment(Vec3f bar, TGAColor &color) {
-        Vec2i uv;
+        Vec2f uv;
         for (size_t i=3;i--;) {
-            uv = uv + varying_uv[i]*bar[i];
+            uv = uv + Vec2f(varying_uv[i])*bar[i];
         }
+        std::cerr << bar << " " << uv << std::endl;
 
 //        float inty = varying_inty[0]*bar.x + varying_inty[1]*bar.y + varying_inty[2]*bar.z;
  //       inty = std::max(0.f, std::min(1.f, inty));
@@ -43,7 +44,7 @@ struct Shader : public IShader {
         Matrix itm = Matrix::identity();//ModelView.invert_transpose();
         vec<4,float> n = itm*embed<4>(model->normal(uv), 0.f);
         Vec3f n2 = proj<3>(n).normalize();
-        float inty = n2*light_dir;
+        float inty = 1;//n2*light_dir;
         color = model->diffuse(uv)*inty;
 
         return false;
