@@ -5,6 +5,7 @@
 #include <ostream>
 #include <iomanip>
 #include "macroses.h"
+#include <assert.h>
 template<size_t DimRows,size_t DimCols,typename Number> class mat;
 template <size_t Dim,typename Number> class vec
 {    
@@ -13,6 +14,17 @@ public:
     Number items[Dim];
     typedef Number NumberT;
     static const size_t DimN=Dim;
+    bool hasNeg() const
+    {
+        for(size_t i=Dim;i--;)
+        {
+            if(items[i]<-0.1f)
+            {
+                return(true);
+            }
+        }
+        return(false);
+    }
 ///////////////////////////////нормировать вектора
     vec<Dim,Number> normalize() const
     {
@@ -200,6 +212,16 @@ public:
     static size_t shift(size_t in,const size_t& val)
     {
         return(in<val ? in : ++in);
+    }
+
+    vec<DimRows,Number> col(const size_t& idx) const
+    {
+        assert(idx<DimRows);
+        vec<DimRows,Number> ret;
+        for(size_t i=DimRows;i--;)
+        {
+            ret[i]=rows[i][idx];
+        }
     }
 
     mat()
