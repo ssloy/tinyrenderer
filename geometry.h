@@ -5,263 +5,210 @@
 #include <vector>
 #include <cassert>
 #include <iostream>
-#include <iomanip>
 
-template<size_t size,typename number_t> class mat;
+template<size_t DimCols,size_t DimRows,typename T> class mat;
 
-template <size_t Dim,typename number_t> struct vec {
-    number_t items[Dim];
+template <size_t DIM, typename T> struct vec {
+    vec() { for (size_t i=DIM; i--; data_[i] = T(0)); }
 
-    vec<Dim,number_t> normalize() const { return (*this)/norm(); }
-    number_t norm() const { return std::sqrt((*this)*(*this)); }
+          T& operator[](const size_t i)       { assert(i<DIM); return data_[i]; }
+    const T& operator[](const size_t i) const { assert(i<DIM); return data_[i]; }
 
-    /*
-    size_t maxElementPos() const { //найти номер максимального элемента
-        size_t ret=0;
-        for (size_t i=Dim;--i;) {
-            if (items[i]>items[ret]) {
-                ret=i;
-            }
-        }
-        return ret;
-    }
-    */
-
-    static vec<Dim,number_t> fill(const number_t& val=0) { // построить вектор, заполненный константой TODO переделать в конструктор
-        vec<Dim, number_t> ret;
-        for (size_t i=Dim; i--; ret[i]=val);
+    vec<DIM,T> operator+(const vec<DIM,T>& v) {
+        vec<DIM, T> ret(*this);
+        for (size_t i=DIM; i--; ret[i]+=v[i]);
         return ret;
     }
 
-    /*
-    bool operator!=(const vec<Dim,number_t>&v) { // TODO переделать в >=, пригодится для растеризатора
-        for (size_t i=Dim; i--; ) {
-            if(v[i]!=items[i])
-                return true;
-        }
-        return false;
-    }
-    */
-
-    number_t& operator [](size_t index) {
-        assert(index<Dim);
-        return items[index];
+    vec<DIM,T> operator-(const vec<DIM,T>& v) {
+        vec<DIM, T> ret(*this);
+        for (size_t i=DIM; i--; ret[i]-=v[i]);
+        return ret;
     }
 
-    const number_t& operator [](size_t index) const {
-        assert(index<Dim);
-        return items[index];
+    T operator*(const vec<DIM,T>& v) const {
+        T ret = T();
+        for (size_t i=DIM; i--; ret += (*this)[i]*v[i]);
+        return ret;
     }
+
+    template <typename U> vec<DIM,T> operator *(U u) {
+        vec<DIM, T> ret(*this);
+        for (size_t i=DIM; i--; ret[i]*=u);
+        return ret;
+    }
+
+private:
+    T data_[DIM];
 };
 
-template<size_t Dim,typename number_t>vec<Dim,number_t> operator+(vec<Dim,number_t> lhs, const vec<Dim,number_t>& rhs) {
-    for (size_t i=Dim; i--; lhs[i]+=rhs[i]);
-    return lhs;
-}
+/////////////////////////////////////////////////////////////////////////////////
 
+template <typename T> struct vec<2,T> {
+    vec() : x(0), y(0) {}
+    vec(T X, T Y) : x(X), y(Y) {}
+    template <class U> vec<2,T>(const vec<2,U> &v);
 
-template<size_t Dim,typename number_t> number_t operator*(const vec<Dim,number_t>&lhs, const vec<Dim,number_t>& rhs) {
-    number_t ret=0;
-    for (size_t i=Dim; i--; ret+=lhs[i]*rhs[i]);
-    return ret;
-}
+          T& operator[](const size_t i)       { assert(i<2); return i<=0 ? x : y; }
+    const T& operator[](const size_t i) const { assert(i<2); return i<=0 ? x : y; }
+    vec<2,T> operator +(const vec<2,T> &v) { return vec<2,T>(x+v.x, y+v.y); }
+    vec<2,T> operator -(const vec<2,T> &v) { return vec<2,T>(x-v.x, y-v.y); }
+    T        operator *(const vec<2,T> &v) { return x*v.x + y*v.y; }
+    template <typename U> vec<2,T> operator *(U u) { return vec<2,T>(x*u, y*u); }
 
-template<size_t Dim,typename number_t>vec<Dim,number_t> operator-(vec<Dim,number_t> lhs, const vec<Dim,number_t>& rhs) {
-    for (size_t i=Dim; i--; lhs[i]-=rhs[i]);
-    return lhs;
-}
+    T x,y;
+};
 
-template<size_t Dim,typename number_t>vec<Dim,number_t> operator*(vec<Dim,number_t> lhs, const number_t& rhs) {
-    for (size_t i=Dim; i--; lhs[i]*=rhs);
-    return lhs;
-}
+/////////////////////////////////////////////////////////////////////////////////
 
-template<size_t Dim,typename number_t>vec<Dim,number_t> operator/(vec<Dim,number_t> lhs, const number_t& rhs) {
-    for (size_t i=Dim; i--; lhs[i]/=rhs);
-    return lhs;
-}
+template <typename T> struct vec<3,T> {
+    vec() : x(0), y(0), z(0) {}
+    vec(T X, T Y, T Z) : x(X), y(Y), z(Z) {}
+    template <class U> vec<3,T>(const vec<3,U> &v);
 
-template<size_t len,size_t Dim, typename number_t> vec<len,number_t> embed(const vec<Dim,number_t> &v,const number_t& fill=1) { // погружение вектора
-    vec<len,number_t> ret = vec<len,number_t>::fill(fill);
-    for (size_t i=Dim; i--; ret[i]=v[i]);
-    return ret;
-}
+          T& operator[](const size_t i)       { assert(i<3); return i<=0 ? x : (1==i ? y : z); }
+    const T& operator[](const size_t i) const { assert(i<3); return i<=0 ? x : (1==i ? y : z); }
+    vec<3,T> operator +(const vec<3,T> &v) { return vec<3,T>(x+v.x, y+v.y, z+v.z); }
+    vec<3,T> operator -(const vec<3,T> &v) { return vec<3,T>(x-v.x, y-v.y, z-v.z); }
+    T        operator *(const vec<3,T> &v) { return x*v.x + y*v.y + z*v.z; }
+    template <typename U> vec<3,T> operator *(U u) { return vec<3,T>(x*u, y*u, z*u); }
 
-template<size_t len,size_t Dim, typename number_t> vec<len,number_t> proj(const vec<Dim,number_t> &v) { //проекция вектора
-    vec<len,number_t> ret;
-    for (size_t i=len; i--; ret[i]=v[i]);
-    return ret;
-}
+    float norm() { return std::sqrt(x*x+y*y+z*z); }
+    vec<3,T> & normalize(T l=1) { *this = (*this)*(l/norm()); return *this; }
 
-template<size_t Dim,typename number_t> std::ostream& operator<<(std::ostream& out,const vec<Dim,number_t>& v) {
-    out<<"{ ";
-    for (size_t i=0; i<Dim; i++) {
-        out<<std::setw(6)<<v[i]<<" ";
+    T x,y,z;
+};
+
+/////////////////////////////////////////////////////////////////////////////////
+
+template <size_t DIM, typename T> std::ostream& operator<<(std::ostream& out, vec<DIM,T>& v) {
+    for(unsigned int i=0; i<DIM; i++) {
+        out << v[i] << " " ;
     }
-    out<<"} ";
-    return out;
+    return out ;
+}
+
+template <class T> std::ostream& operator<<(std::ostream& out, vec<3,T>& v) {
+    out << v.x << " " << v.y << " " << v.z;
+    return out ;
+}
+
+template <class T> std::ostream& operator<<(std::ostream& out, vec<2,T>& v) {
+    out << v.x << " " << v.y;
+    return out ;
+}
+
+template<size_t LEN,size_t DIM,typename T> vec<LEN,T> embed(const vec<DIM,T> &v, T fill=1) { // погружение вектора
+    vec<LEN,T> ret;
+    for (size_t i=LEN; i--; ret[i]=(i<DIM?v[i]:fill));
+    return ret;
+}
+
+template<size_t LEN,size_t DIM, typename T> vec<LEN,T> proj(const vec<DIM,T> &v) { // погружение вектора
+    vec<LEN,T> ret;
+    for (size_t i=LEN; i--; ret[i]=v[i]);
+    return ret;
+}
+
+template <typename T> vec<3,T> cross(vec<3,T> v1, vec<3,T> v2) {
+    return vec<3,T>(v1.y*v2.z - v1.z*v2.y, v1.z*v2.x - v1.x*v2.z, v1.x*v2.y - v1.y*v2.x);
 }
 
 /////////////////////////////////////////////////////////////////////////////////
 
-template<size_t size,typename number_t> struct dt {
-    static number_t det(const mat<size,number_t>& src) {
-        number_t ret=0;
-        for (size_t i=size; i--; ret += src[0][i]*src.algAdd(0,i));
+template<size_t DIM,typename T> struct dt {
+    static T det(const mat<DIM,DIM,T>& src) {
+        T ret=0;
+        for (size_t i=DIM; i--; ret += src[0][i]*src.algAdd(0,i));
         return ret;
     }
 };
 
-template<typename number_t> struct dt<1,number_t> {
-    static number_t det(const mat<1,number_t>& src) {
+template<typename T> struct dt<1,T> {
+    static T det(const mat<1,1,T>& src) {
         return src[0][0];
     }
 };
 
 /////////////////////////////////////////////////////////////////////////////////
 
-template<size_t size,typename number_t> class mat {
-    vec<size,number_t> rows[size];
+template<size_t DimRows,size_t DimCols,typename T> class mat {
+    vec<DimCols,T> rows[DimRows];
 public:
     mat() {}
 
-    mat(const mat<size,number_t>& src) {
-        for (size_t i=size; i--; )
-            for (size_t j=size; j--; rows[i][j]=src[i][j]);
+    vec<DimCols,T>& operator[] (const size_t idx) {
+        assert(idx<DimRows);
+        return rows[idx];
     }
 
-    std::ostream& print(std::ostream& out) const {
-        for (size_t i=0;i<size;i++) {
-            out<<rows[i]<<"\n";
-        }
-        return out;
+    const vec<DimCols,T>& operator[] (const size_t idx) const {
+        assert(idx<DimRows);
+        return rows[idx];
     }
 
-    /*
-    vec<size,number_t> minimums() {
-        vec<size,number_t> ret=rows[0];
-        for (size_t i=size;--i;) {
-            for (size_t j=size;j--;) {
-                ret[j]=std::min(ret[j],rows[i][j]);
-            }
-        }
+    vec<DimRows,T> col(const size_t idx) {
+        assert(idx<DimCols);
+        vec<DimRows,T> ret;
+        for (size_t i=DimRows; i--; ret[i]=rows[i][idx]);
         return ret;
     }
 
-    vec<size,number_t> maximums() {
-        vec<size,number_t> ret=rows[0];
-        for (size_t i=size;--i;) {
-            for (size_t j=size;j--;) {
-                ret[j]=std::max(ret[j],rows[i][j]);
-            }
-        }
-        return ret;
-    }
-    */
-
-    vec<size,number_t> col(const size_t& idx) const {
-        assert(idx<size);
-        vec<size,number_t> ret;
-        for(size_t i=size; i--; ret[i]=rows[i][idx]);
+    static mat<DimRows,DimCols,T> identity() {
+        mat<DimRows,DimCols,T> ret;
+        for (size_t i=DimRows; i--; )
+            for (size_t j=DimCols;j--; ret[i][j]=(i==j));
         return ret;
     }
 
-    vec<size,number_t>& operator[] (size_t index) {
-        return rows[index];
+    T det() const {
+        return dt<DimCols,T>::det(*this);
     }
 
-    const vec<size,number_t>& operator[] (size_t index) const {
-        return rows[index];
-    }
-
-    static mat<size,number_t> identity() {
-        mat<size,number_t> ret;
-        for (size_t i=size; i--; )
-            for (size_t j=size;j--; ret[i][j]=(i==j));
+    mat<DimRows-1,DimCols-1,T> minor(size_t row, size_t col) {
+        mat<DimRows-1,DimCols-1,T> ret;
+        for (size_t i=DimRows-1; i--; )
+            for (size_t j=DimCols-1;j--; ret[i][j]=rows[i<row?i:i+1][j<col?j:j+1]);
         return ret;
     }
 
-    number_t det() const {
-        return dt<size,number_t>::det(*this);
-    }
-
-    mat<size-1,number_t> minor(size_t row,size_t col) const {
-        mat<size-1,number_t> ret;
-        for (size_t i=size-1; i--; )
-            for (size_t j=size-1;j--; ret[i][j]=rows[i<row?i:i+1][j<col?j:j+1]);
-        return ret;
-    }
-
-    number_t algAdd(size_t row, size_t col) const {
+    T algAdd(size_t row, size_t col) const {
         return minor(row,col).det()*((row+col)%2 ? -1 : 1);
     }
 
-    mat<size,number_t> adjugate() const {
-        mat<size,number_t> ret;
-        for (size_t i=size; i--; )
-            for (size_t j=size; j--; ret[i][j]=algAdd(i,j));
+    mat<DimRows,DimCols,T> adjugate() const {
+        mat<DimRows,DimCols,T> ret;
+        for (size_t i=DimRows; i--; )
+            for (size_t j=DimCols; j--; ret[i][j]=algAdd(i,j));
         return ret;
     }
 
-    mat<size,number_t> invert_transpose() const {
-        mat<size,number_t> ret = adjugate();
+    mat<DimRows,DimCols,T> invert_transpose() const {
+        mat<DimRows,DimCols,T> ret = adjugate();
         return ret/(ret[0]*rows[0]);
     }
-
-    /*
-    void setCol(const number_t& val,size_t col) {
-        for (size_t i=size; i--; rows[i][col]=val);
-    }
-    */
-
 };
-
-template<size_t size,typename number_t>vec<size,number_t> operator*(const mat<size,number_t>& lhs, const vec<size,number_t>& rhs) {
-    vec<size,number_t> ret;
-    for (size_t i=size; i--; ret[i]=lhs[i]*rhs);
-    return ret;
-}
-
-template<size_t size,typename number_t>mat<size,number_t> operator*(const mat<size,number_t>& lhs, const mat<size,number_t>& rhs) { // TODO уфф
-    mat<size,number_t> result;
-    for (size_t i=size; i--; )
-        for (size_t j=size; j--; result[i][j]=lhs[i]*rhs.col(j));
-    return result;
-}
-
-/*
-template<size_t size,typename number_t>mat<size,number_t> operator/(mat<size,number_t> lhs, const number_t& rhs) {
-    for (size_t i=size; i--; lhs[i]=lhs[i]/rhs);
-    return lhs;
-}
-*/
-
-template<size_t size,typename number_t> std::ostream& operator<<(std::ostream& os,const mat<size,number_t>& v) {
-    return v.print(os);
-}
-
-
 
 /////////////////////////////////////////////////////////////////////////////////
 
-typedef vec<2,float> Vec2f;
-typedef vec<2,int>   Vec2i;
-typedef vec<3,float> Vec3f;
-typedef vec<3,int>   Vec3i;
-typedef mat<4,float> Matrix;
-
-template<typename number_t> vec<3,number_t> cross(vec<3,number_t> lhs, vec<3,number_t> rhs) {
-    vec<3,number_t> ret;
-    for (size_t i=3; i--; ) {
-        mat<3,number_t> temp;
-        temp[0]=vec<3,number_t>::fill(0);
-        temp[0][i]=1;
-        temp[1]=lhs;
-        temp[2]=rhs;
-        ret[i]=temp.det();
-    }
+template<size_t DimRows,size_t DimCols,typename T> vec<DimRows,T> operator*(const mat<DimRows,DimCols,T>& lhs, const vec<DimCols,T>& rhs) {
+    vec<DimRows,T> ret;
+    for (size_t i=DimRows; i--; ret[i]=lhs[i]*rhs);
     return ret;
 }
+
+template <size_t DimRows,size_t DimCols,class T> std::ostream& operator<<(std::ostream& out, mat<DimRows,DimCols,T>& m) {
+    for (size_t i=DimRows; i--; ) out << m[i] << std::endl;
+    return out;
+}
+
+/////////////////////////////////////////////////////////////////////////////////
+
+typedef vec<2,  float> Vec2f;
+typedef vec<2,  int>   Vec2i;
+typedef vec<3,  float> Vec3f;
+typedef vec<3,  int>   Vec3i;
+typedef mat<4,4,float> Matrix;
 
 #endif //__GEOMETRY_H__
 
