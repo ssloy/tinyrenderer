@@ -19,5 +19,8 @@ struct IShader {
 };
 
 void triangle(Vec3i *pts, IShader &shader, TGAImage &image, TGAImage &zbuffer);
+template <typename T> T CLAMP(const T& value, const T& low, const T& high) {
+    return value < low ? low : (value > high ? high : value);
+}
 
 #endif //__OUR_GL_H__

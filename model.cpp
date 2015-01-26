@@ -3,7 +3,7 @@
 #include <sstream>
 #include "model.h"
 
-Model::Model(const char *filename) : verts_(), faces_(), norms_(), uv_(), diffusemap_(), normalmap_() {
+Model::Model(const char *filename) : verts_(), faces_(), norms_(), uv_(), diffusemap_(), normalmap_(), specularmap_() {
     std::ifstream in;
     in.open (filename, std::ifstream::in);
     if (in.fail()) return;
@@ -41,6 +41,7 @@ Model::Model(const char *filename) : verts_(), faces_(), norms_(), uv_(), diffus
     std::cerr << "# v# " << verts_.size() << " f# "  << faces_.size() << " vt# " << uv_.size() << " vn# " << norms_.size() << std::endl;
     load_texture(filename, "_diffuse.tga", diffusemap_);
     load_texture(filename, "_nm.tga",      normalmap_);
+    load_texture(filename, "_spec.tga",    specularmap_);
 }
 
 Model::~Model() {}
@@ -94,8 +95,11 @@ Vec2i Model::uv(int iface, int nthvert) {
     return Vec2i(uv_[idx][0]*diffusemap_.get_width(), uv_[idx][1]*diffusemap_.get_height());
 }
 
+float Model::specular(Vec2i uv) {
+    return specularmap_.get(uv.x, uv.y)[0]/1.f;
+}
+
 Vec3f Model::normal(int iface, int nthvert) {
     int idx = faces_[iface][nthvert][2];
     return norms_[idx].normalize();
 }
-
