@@ -86,12 +86,12 @@ Vec3f Model::normal(Vec2i uv) {
     Vec3f res;
     for (int i=0; i<3; i++)
         res[2-i] = (float)c[i]/255.f*2.f - 1.f;
-    return res.normalize();
+    return res;
 }
 
 Vec2i Model::uv(int iface, int nthvert) {
     int idx = faces_[iface][nthvert][1];
-    return Vec2i(uv_[idx][0]*diffusemap_.get_width(), uv_[idx][1]*diffusemap_.get_height());
+    return (Vec2i){static_cast<int>(uv_[idx][0]*diffusemap_.get_width()), static_cast<int>(uv_[idx][1]*diffusemap_.get_height())};
 }
 
 Vec3f Model::normal(int iface, int nthvert) {
