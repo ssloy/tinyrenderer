@@ -39,7 +39,11 @@ struct Shader : public IShader {
 //        float inty = varying_inty[0]*bar.x + varying_inty[1]*bar.y + varying_inty[2]*bar.z;
  //       inty = std::max(0.f, std::min(1.f, inty));
 //        color = model->diffuse(uv)*inty;
-        float inty = model->normal(uv)*light_dir;
+
+        Matrix itm = Matrix::identity();//ModelView.invert_transpose();
+        vec<4,float> n = itm*embed<4>(model->normal(uv), 0.f);
+        Vec3f n2 = proj<3>(n).normalize();
+        float inty = n2*light_dir;
         color = model->diffuse(uv)*inty;
 
         return false;

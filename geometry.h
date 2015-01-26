@@ -32,12 +32,19 @@ template <size_t DIM, typename T> struct vec {
         return ret;
     }
 
-    template <typename U> vec<DIM,T> operator *(U u) {
+    vec<DIM,T> operator *(T u) {
         vec<DIM, T> ret(*this);
         for (size_t i=DIM; i--; ret[i]*=u);
         return ret;
     }
 
+/*
+    template <typename U> vec<DIM,T> operator *(U u) {
+        vec<DIM, T> ret(*this);
+        for (size_t i=DIM; i--; ret[i]*=u);
+        return ret;
+    }
+*/
 private:
     T data_[DIM];
 };
@@ -54,7 +61,8 @@ template <typename T> struct vec<2,T> {
     vec<2,T> operator +(const vec<2,T> &v) { return vec<2,T>(x+v.x, y+v.y); }
     vec<2,T> operator -(const vec<2,T> &v) { return vec<2,T>(x-v.x, y-v.y); }
     T        operator *(const vec<2,T> &v) { return x*v.x + y*v.y; }
-    template <typename U> vec<2,T> operator *(U u) { return vec<2,T>(x*u, y*u); }
+    vec<2,T> operator *(T u) { return vec<2,T>(x*u, y*u); }
+//    template <typename U> vec<2,T> operator *(U u) { return vec<2,T>(x*u, y*u); }
 
     T x,y;
 };
@@ -71,7 +79,8 @@ template <typename T> struct vec<3,T> {
     vec<3,T> operator +(const vec<3,T> &v) { return vec<3,T>(x+v.x, y+v.y, z+v.z); }
     vec<3,T> operator -(const vec<3,T> &v) { return vec<3,T>(x-v.x, y-v.y, z-v.z); }
     T        operator *(const vec<3,T> &v) { return x*v.x + y*v.y + z*v.z; }
-    template <typename U> vec<3,T> operator *(U u) { return vec<3,T>(x*u, y*u, z*u); }
+    vec<3,T> operator *(T u) { return vec<3,T>(x*u, y*u, z*u); }
+//    template <typename U> vec<3,T> operator *(U u) { return vec<3,T>(x*u, y*u, z*u); }
 
     float norm() { return std::sqrt(x*x+y*y+z*z); }
     vec<3,T> & normalize(T l=1) { *this = (*this)*(l/norm()); return *this; }
@@ -165,7 +174,7 @@ public:
         return dt<DimCols,T>::det(*this);
     }
 
-    mat<DimRows-1,DimCols-1,T> minor(size_t row, size_t col) {
+    mat<DimRows-1,DimCols-1,T> minor(size_t row, size_t col) const {
         mat<DimRows-1,DimCols-1,T> ret;
         for (size_t i=DimRows-1; i--; )
             for (size_t j=DimCols-1;j--; ret[i][j]=rows[i<row?i:i+1][j<col?j:j+1]);
@@ -183,9 +192,10 @@ public:
         return ret;
     }
 
-    mat<DimRows,DimCols,T> invert_transpose() const {
+    mat<DimRows,DimCols,T> invert_transpose() {
         mat<DimRows,DimCols,T> ret = adjugate();
-        return ret/(ret[0]*rows[0]);
+        T tmp = ret[0]*rows[0];
+        return ret/tmp;
     }
 };
 
@@ -196,6 +206,13 @@ template<size_t DimRows,size_t DimCols,typename T> vec<DimRows,T> operator*(cons
     for (size_t i=DimRows; i--; ret[i]=lhs[i]*rhs);
     return ret;
 }
+
+
+template<size_t DimRows,size_t DimCols,typename T>mat<DimCols,DimRows,T> operator/(mat<DimRows,DimCols,T> lhs, const T& rhs) {
+    for (size_t i=DimRows; i--; lhs[i]=lhs[i]*(1./rhs));
+    return lhs;
+}
+
 
 template <size_t DimRows,size_t DimCols,class T> std::ostream& operator<<(std::ostream& out, mat<DimRows,DimCols,T>& m) {
     for (size_t i=DimRows; i--; ) out << m[i] << std::endl;
