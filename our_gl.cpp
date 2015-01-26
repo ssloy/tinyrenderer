@@ -23,8 +23,8 @@ void projection(float coeff) {
 
 void lookat(Vec3f eye, Vec3f center, Vec3f up) {
     Vec3f z = (eye-center).normalize();
-    Vec3f x = (up^z).normalize();
-    Vec3f y = (z^x).normalize();
+    Vec3f x = cross(up,z).normalize();
+    Vec3f y = cross(z,x).normalize();
     ModelView = Matrix::identity();
     for (int i=0; i<3; i++) {
         ModelView[0][i] = x[i];
@@ -35,7 +35,8 @@ void lookat(Vec3f eye, Vec3f center, Vec3f up) {
 }
 
 Vec3f barycentric(Vec3i A, Vec3i B, Vec3i C, Vec3i P) {
-    Vec3f u = ((Vec3f){static_cast<float>(C[0]-A[0]), static_cast<float>(B[0]-A[0]), static_cast<float>(A[0]-P[0])})^((Vec3f){static_cast<float>(C[1]-A[1]), static_cast<float>(B[1]-A[1]), static_cast<float>(A[1]-P[1])});
+    Vec3f u = cross((Vec3f){static_cast<float>(C[0]-A[0]), static_cast<float>(B[0]-A[0]), static_cast<float>(A[0]-P[0])},
+               (Vec3f){static_cast<float>(C[1]-A[1]), static_cast<float>(B[1]-A[1]), static_cast<float>(A[1]-P[1])});
     return std::abs(u[2])>.5 ? (Vec3f){1.f-(u[0]+u[1])/u[2], u[1]/u[2], u[0]/u[2]} : (Vec3f){static_cast<float>(-1),static_cast<float>(1),static_cast<float>(1)}; // dont forget that u[2] is an integer. If it is zero then triangle ABC is degenerate
 }
 
