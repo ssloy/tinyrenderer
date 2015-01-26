@@ -86,7 +86,7 @@ Vec3f Model::normal(Vec2i uv) {
     Vec3f res;
     for (int i=0; i<3; i++)
         res[2-i] = (float)c[i]/255.f*2.f - 1.f;
-    return res;
+    return res.normalize();
 }
 
 Vec2i Model::uv(int iface, int nthvert) {
