@@ -62,9 +62,9 @@ void triangle(Vec3i *pts, IShader &shader, TGAImage &image, TGAImage &zbuffer) {
     TGAColor color;
     for (P.x=bboxmin.x; P.x<=bboxmax.x; P.x++) {
         for (P.y=bboxmin.y; P.y<=bboxmax.y; P.y++) {
-            Vec3f c = barycentric(pts.x, pts.y, pts.z, P);
-            P.z = std::max(0, std::min(255, int(pts.x.z*c.x + pts.y.z*c.y + pts.z.z*c.z + .5))); // clamping to 0-255 since it is stored in unsigned char
-            if (c.x<0 || c.y<0 || c.z<0 || zbuffer.get(P.x, P.y).x>P.z) continue;
+            Vec3f c = barycentric(pts[0], pts[1], pts[2], P);
+            P.z = std::max(0, std::min(255, int(pts[0].z*c.x + pts[1].z*c.y + pts[2].z*c.z + .5))); // clamping to 0-255 since it is stored in unsigned char
+            if (c.x<0 || c.y<0 || c.z<0 || zbuffer.get(P.x, P.y)[0]>P.z) continue;
             bool discard = shader.fragment(c, color);
             if (!discard) {
                 zbuffer.set(P.x, P.y, TGAColor(P.z));
