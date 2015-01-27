@@ -6,6 +6,8 @@ Matrix ModelView;
 Matrix Viewport;
 Matrix Projection;
 
+IShader::~IShader() {}
+
 void viewport(int x, int y, int w, int h) {
     Viewport = Matrix::identity();
     Viewport[0][3] = x+w/2.f;
@@ -58,15 +60,15 @@ void triangle(Vec3i *pts, IShader &shader, TGAImage &image, TGAImage &zbuffer) {
     }
     Vec3i P;
     TGAColor color;
-    for (P[0]=bboxmin[0]; P[0]<=bboxmax[0]; P[0]++) {
-        for (P[1]=bboxmin[1]; P[1]<=bboxmax[1]; P[1]++) {
-            Vec3f c = barycentric(pts[0], pts[1], pts[2], P);
-            P[2] = std::max(0, std::min(255, int(pts[0].z*c[0] + pts[1].z*c[1] + pts[2].z*c[2] + .5))); // clamping to 0-255 since it is stored in unsigned char
-            if (c[0]<0 || c[1]<0 || c[2]<0 || zbuffer.get(P[0], P[1])[0]>P[2]) continue;
+    for (P.x=bboxmin.x; P.x<=bboxmax.x; P.x++) {
+        for (P.y=bboxmin.y; P.y<=bboxmax.y; P.y++) {
+            Vec3f c = barycentric(pts.x, pts.y, pts.z, P);
+            P.z = std::max(0, std::min(255, int(pts.x.z*c.x + pts.y.z*c.y + pts.z.z*c.z + .5))); // clamping to 0-255 since it is stored in unsigned char
+            if (c.x<0 || c.y<0 || c.z<0 || zbuffer.get(P.x, P.y).x>P.z) continue;
             bool discard = shader.fragment(c, color);
             if (!discard) {
-                zbuffer.set(P[0], P[1], TGAColor(P[2]));
-                image.set(P[0], P[1], color);
+                zbuffer.set(P.x, P.y, TGAColor(P.z));
+                image.set(P.x, P.y, color);
             }
         }
     }

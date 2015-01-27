@@ -15,36 +15,20 @@ Vec3f       eye(1,1,3);
 Vec3f    center(0,0,0);
 Vec3f        up(0,1,0);
 
-struct Shader : public IShader {
-    mat<3,3,float> varying_tri;
-    mat<2,3,float> varying_uv;
-
-    virtual ~Shader() {}
+struct GouraudShader : public IShader {
+    Vec3f varying_intensity; // written by vertex shader, read by fragment shader
 
     virtual Vec3i vertex(int iface, int nthvert) {
-        Vec4f gl_Vertex = embed<4>(model->vert(iface, nthvert));
-        gl_Vertex = Projection*ModelView*gl_Vertex;
-        varying_tri.set_col(nthvert, proj<3>(gl_Vertex/gl_Vertex[3]));
-
-        varying_uv.set_col(nthvert, model->uv(iface, nthvert));
-
-        gl_Vertex = Viewport*gl_Vertex;
-        return proj<3>(gl_Vertex/gl_Vertex[3]);
+        Vec4f gl_Vertex = embed<4>(model->vert(iface, nthvert)); // read the vertex from .obj file
+        gl_Vertex = Viewport*Projection*ModelView*gl_Vertex;     // transform it to screen coordinates
+        varying_intensity[nthvert] = std::max(0.f, model->normal(iface, nthvert)*light_dir); // get diffuse lighting intensity
+        return proj<3>(gl_Vertex/gl_Vertex[3]);                  // project homogenious coordinates to 3d
     }
 
     virtual bool fragment(Vec3f bar, TGAColor &color) {
-        Vec2i uv = varying_uv*bar;
-        Vec3f n = model->normal(uv);
-        Vec3f reflected_light = n*(n*light_dir*2.f) - light_dir;
-        float diffuse_ity  = std::max(n*light_dir, 0.f);
-        float ambient_ity  = .1f;
-        float specular_ity = pow(std::max(reflected_light.z/reflected_light.norm(), 0.0f), model->specular(uv));
-
-        float ity = CLAMP(.1f+n*light_dir, 0.f, 1.f);
-        TGAColor diff = model->diffuse(uv)*ity;
-        for (int c=0; c<3; c++) color[c] = std::min(5 + diff[c]*(diffuse_ity + .6f*specular_ity), 255.f);
-
-        return false;
+        float intensity = varying_intensity*bar;   // interpolate intensity for the current pixel
+        color = TGAColor(255, 255, 255)*intensity; // well duh
+        return false;                              // no, we do not discard this pixel
     }
 };
 
@@ -63,7 +47,7 @@ int main(int argc, char** argv) {
     TGAImage image  (width, height, TGAImage::RGB);
     TGAImage zbuffer(width, height, TGAImage::GRAYSCALE);
 
-    Shader shader;
+    GouraudShader shader;
     for (int i=0; i<model->nfaces(); i++) {
         Vec3i screen_coords[3];
         for (int j=0; j<3; j++) {
