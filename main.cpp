@@ -11,18 +11,18 @@ const int width  = 800;
 const int height = 800;
 
 Vec3f light_dir(1,1,1);
-Vec3f       eye(1,1,3);
+Vec3f       eye(0,-1,3);
 Vec3f    center(0,0,0);
 Vec3f        up(0,1,0);
 
 struct GouraudShader : public IShader {
     Vec3f varying_intensity; // written by vertex shader, read by fragment shader
 
-    virtual Vec3i vertex(int iface, int nthvert) {
+    virtual Vec4f vertex(int iface, int nthvert) {
         Vec4f gl_Vertex = embed<4>(model->vert(iface, nthvert)); // read the vertex from .obj file
         gl_Vertex = Viewport*Projection*ModelView*gl_Vertex;     // transform it to screen coordinates
         varying_intensity[nthvert] = std::max(0.f, model->normal(iface, nthvert)*light_dir); // get diffuse lighting intensity
-        return proj<3>(gl_Vertex/gl_Vertex[3]);                  // project homogenious coordinates to 3d
+        return gl_Vertex;
     }
 
     virtual bool fragment(Vec3f bar, TGAColor &color) {
@@ -49,7 +49,7 @@ int main(int argc, char** argv) {
 
     GouraudShader shader;
     for (int i=0; i<model->nfaces(); i++) {
-        Vec3i screen_coords[3];
+        Vec4f screen_coords[3];
         for (int j=0; j<3; j++) {
             screen_coords[j] = shader.vertex(i, j);
         }
