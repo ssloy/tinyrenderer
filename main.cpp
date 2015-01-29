@@ -1,6 +1,5 @@
 #include <vector>
 #include <iostream>
-
 #include "tgaimage.h"
 #include "model.h"
 #include "geometry.h"
@@ -19,10 +18,9 @@ struct GouraudShader : public IShader {
     Vec3f varying_intensity; // written by vertex shader, read by fragment shader
 
     virtual Vec4f vertex(int iface, int nthvert) {
-        Vec4f gl_Vertex = embed<4>(model->vert(iface, nthvert)); // read the vertex from .obj file
-        gl_Vertex = Viewport*Projection*ModelView*gl_Vertex;     // transform it to screen coordinates
         varying_intensity[nthvert] = std::max(0.f, model->normal(iface, nthvert)*light_dir); // get diffuse lighting intensity
-        return gl_Vertex;
+        Vec4f gl_Vertex = embed<4>(model->vert(iface, nthvert)); // read the vertex from .obj file
+        return Viewport*Projection*ModelView*gl_Vertex; // transform it to screen coordinates
     }
 
     virtual bool fragment(Vec3f bar, TGAColor &color) {
@@ -64,3 +62,4 @@ int main(int argc, char** argv) {
     delete model;
     return 0;
 }
+
