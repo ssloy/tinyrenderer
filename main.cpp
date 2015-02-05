@@ -110,9 +110,10 @@ int main(int argc, char** argv) {
     TGAImage ocim(1024, 1024, TGAImage::GRAYSCALE);
     for (int i=0; i<1024; i++) {
         for (int j=0; j<1024; j++) {
-            ocim.set(i, j, 255.*occlusion[i+j*1024]/float(nrenders));
+            ocim.set(i, j, TGAColor(255.*occlusion[i+j*1024]/float(nrenders)));
         }
     }
+    ocim.gaussian_blur(2);
     ocim.flip_vertically();
     ocim.write_tga_file("occlusion.tga");
 

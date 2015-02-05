@@ -374,24 +374,28 @@ void TGAImage::gaussian_blur(const int radius) {
     float *kernel = gaussian_kernel(radius);
     TGAImage tmp(*this);
     int size = (radius*2)+1;
-    for (int j=size; j<tmp.get_height(); j++) {
-        for (int i=0; i<tmp.get_width(); i++) {
+    for (int j=size; j<get_height(); j++) {
+        for (int i=0; i<get_width(); i++) {
             float BGRA[4] = {0,0,0,0};
             for (int k=0; k<size; k++){
                 TGAColor c = get(i, j-size+k);
-                for (int d=0; d<4; d++) BGRA[d] += float(c[d])*kernel[k];
+                for (int d=0; d<bytespp; d++) BGRA[d] += float(c[d])*kernel[k];
             }
-            tmp.set(i, j, TGAColor(BGRA[0], BGRA[1], BGRA[2], BGRA[3]));
+            unsigned char cBGRA[4];
+            for (int i=4; i--; cBGRA[i] = (unsigned char)BGRA[i]);
+            tmp.set(i, j, TGAColor(cBGRA, bytespp));
         }
     }
-    for (int j=0; j<tmp.get_height(); j++) {
-        for (int i=size; i<tmp.get_width(); i++) {
+    for (int j=0; j<get_height(); j++) {
+        for (int i=size; i<get_width(); i++) {
             float BGRA[4] = {0,0,0,0};
             for (int k=0; k<size; k++){
                 TGAColor c = tmp.get(i-size+k, j);
-                for (int d=0; d<4; d++) BGRA[d] += float(c[d])*kernel[k];
+                for (int d=0; d<bytespp; d++) BGRA[d] += float(c[d])*kernel[k];
             }
-            set(i, j, TGAColor(BGRA[0], BGRA[1], BGRA[2], BGRA[3]));
+            unsigned char cBGRA[4];
+            for (int i=4; i--; cBGRA[i] = (unsigned char)BGRA[i]);
+            set(i, j, TGAColor(cBGRA, bytespp));
         }
     }
     delete [] kernel;
