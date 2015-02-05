@@ -68,7 +68,7 @@ int main(int argc, char** argv) {
 
     const int nrenders = 1;
     for (int iter=0; iter<nrenders; iter++) {
-        std::cerr << iter << " from " << nrenders << std::endl; 
+        std::cerr << iter << " from " << nrenders << std::endl;
         float u = (float)rand()/(float)RAND_MAX;
         float v = (float)rand()/(float)RAND_MAX;
         float theta = 2.f*M_PI*u;
