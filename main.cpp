@@ -15,7 +15,7 @@ const int height = 800;
 int occlusion[1024*1024];
 
 Vec3f light_dir(1,1,1);
-Vec3f       eye(1,1,3);
+Vec3f       eye(0,0,3);
 Vec3f    center(0,0,0);
 Vec3f        up(0,1,0);
 
@@ -57,6 +57,14 @@ struct Shader : public IShader {
     }
 };
 
+Vec3f rand_point_on_unit_sphere() {
+    float u = (float)rand()/(float)RAND_MAX;
+    float v = (float)rand()/(float)RAND_MAX;
+    float theta = 2.f*M_PI*u;
+    float phi   = acos(2.f*v - 1.f);
+    return Vec3f(sin(phi)*cos(theta), sin(phi)*sin(theta), cos(phi));
+}
+
 int main(int argc, char** argv) {
     if (2>argc) {
         std::cerr << "Usage: " << argv[0] << "obj/model.obj" << std::endl;
@@ -68,16 +76,7 @@ int main(int argc, char** argv) {
 
     const int nrenders = 1;
     for (int iter=0; iter<nrenders; iter++) {
-        std::cerr << iter << " from " << nrenders << std::endl; 
-        float u = (float)rand()/(float)RAND_MAX;
-        float v = (float)rand()/(float)RAND_MAX;
-        float theta = 2.f*M_PI*u;
-        float phi   = acos(2.f*v - 1.f);
-        float r = 5;
-        eye.x = r*sin(phi)*cos(theta);
-        eye.y = r*sin(phi)*sin(theta);
-        eye.z = r*cos(phi);
-        eye.y = std::abs(eye.y); // uper hemisphere only
+        std::cerr << iter << " from " << nrenders << std::endl;
         std::cout <<"v " << eye << std::endl;
         for (int i=0; i<3; i++) up[i] = (float)rand()/(float)RAND_MAX;
 
@@ -110,9 +109,10 @@ int main(int argc, char** argv) {
     TGAImage ocim(1024, 1024, TGAImage::GRAYSCALE);
     for (int i=0; i<1024; i++) {
         for (int j=0; j<1024; j++) {
-            ocim.set(i, j, 255.*occlusion[i+j*1024]/float(nrenders));
+            ocim.set(i, j, TGAColor(255.*occlusion[i+j*1024]/float(nrenders)));
         }
     }
+//    ocim.gaussian_blur(5);
     ocim.flip_vertically();
     ocim.write_tga_file("occlusion.tga");
 
