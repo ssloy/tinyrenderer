@@ -28,13 +28,15 @@ void lookat(Vec3f eye, Vec3f center, Vec3f up) {
     Vec3f z = (eye-center).normalize();
     Vec3f x = cross(up,z).normalize();
     Vec3f y = cross(z,x).normalize();
-    ModelView = Matrix::identity();
+    Matrix Minv = Matrix::identity();
+    Matrix Tr   = Matrix::identity();
     for (int i=0; i<3; i++) {
-        ModelView[0][i] = x[i];
-        ModelView[1][i] = y[i];
-        ModelView[2][i] = z[i];
-        ModelView[i][3] = -center[i];
+        Minv[0][i] = x[i];
+        Minv[1][i] = y[i];
+        Minv[2][i] = z[i];
+        Tr[i][3] = -center[i];
     }
+    ModelView = Minv*Tr;
 }
 
 Vec3f barycentric(Vec2f A, Vec2f B, Vec2f C, Vec2f P) {
