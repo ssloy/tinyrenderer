@@ -75,7 +75,7 @@ void triangle(mat<4,3,float> &clipc, IShader &shader, TGAImage &image, float *zb
             bc_clip = bc_clip/(bc_clip.x+bc_clip.y+bc_clip.z);
             float frag_depth = clipc[2]*bc_clip;
             if (bc_screen.x<0 || bc_screen.y<0 || bc_screen.z<0 || zbuffer[P.x+P.y*image.get_width()]>frag_depth) continue;
-            bool discard = shader.fragment(bc_clip, color);
+            bool discard = shader.fragment(Vec3f(P.x, P.y, frag_depth), bc_clip, color);
             if (!discard) {
                 zbuffer[P.x+P.y*image.get_width()] = frag_depth;
                 image.set(P.x, P.y, color);

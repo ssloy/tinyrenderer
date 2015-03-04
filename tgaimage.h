@@ -92,6 +92,7 @@ public:
     int get_bytespp();
     unsigned char *buffer();
     void clear();
+    void gaussian_blur(const int radius);
 };
 
 #endif //__IMAGE_H__
