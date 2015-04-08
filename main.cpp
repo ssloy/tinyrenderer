@@ -57,7 +57,7 @@ struct Shader : public IShader {
 
 int main(int argc, char** argv) {
     if (2>argc) {
-        std::cerr << "Usage: " << argv[0] << "obj/model.obj" << std::endl;
+        std::cerr << "Usage: " << argv[0] << " obj/model.obj" << std::endl;
         return 1;
     }
 
