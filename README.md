@@ -1,5 +1,7 @@
 # How OpenGL works: software renderer in 500 lines of code
 
+* check [the wiki](https://github.com/ssloy/tinyrenderer/wiki/Lesson-1:-Bresenham%E2%80%99s-Line-Drawing-Algorithm) for the detailed lessons
+
 In this series of articles, I want to show the way OpenGL works by writing its clone (a much simplified one). Surprisingly enough, I often meet people who cannot overcome the initial hurdle of learning OpenGL / DirectX. Thus, I have prepared a short series of lectures, after which my students show quite good renderers.
 
 So, the task is formulated as follows: using no third-party libraries (especially graphic ones), get something like this picture:
