@@ -33,3 +33,13 @@ int main(int argc, char** argv) {
 output.tga should look something like this:
 
 ![](http://www.loria.fr/~sokolovd/cg-course/img/2d3b12170b.png)
+
+
+
+# Teaser: few examples made with the renderer
+
+![](https://hsto.org/getpro/habr/post_images/50d/e2a/be9/50de2abe990efa345664f98c9464a4c8.png)
+
+![](https://hsto.org/getpro/habr/post_images/e3c/d70/492/e3cd704925f52b5466ab3c4f9fbab899.png)
+
+![](http://hsto.org/files/1ba/93f/a5a/1ba93fa5a48646e2a9614271c943b4da.png)
