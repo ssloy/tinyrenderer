@@ -12,7 +12,7 @@ In this series of articles, I want to show the way OpenGL works by writing its c
 
 So, the task is formulated as follows: using no third-party libraries (especially graphic ones), get something like this picture:
 
-![](http://www.loria.fr/~sokolovd/cg-course/img/7ff5d9e311.png)
+![](http://haqr.eu/framebuffer.png)
 
 _Warning: this is a training material that will loosely repeat the structure of the OpenGL library. It will be a software renderer. **I do not want to show how to write applications for OpenGL. I want to show how OpenGL works.** I am deeply convinced that it is impossible to write efficient applications using 3D libraries without understanding this._
 
