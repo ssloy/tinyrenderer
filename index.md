@@ -43,16 +43,16 @@ int main(int argc, char** argv) {
 
 output.tga should look something like this:
 
-![](http://ssloy.github.io/tinyrenderer/2d3b12170b.png)
+![](http://ssloy.github.io/tinyrenderer/img/2d3b12170b.png)
 
 
 # Teaser: few examples made with the renderer
 
-![](http://ssloy.github.io/tinyrenderer/50de2abe990efa345664f98c9464a4c8.png)
+![](http://ssloy.github.io/tinyrenderer/img/50de2abe990efa345664f98c9464a4c8.png)
 
-![](http://ssloy.github.io/tinyrenderer/e3cd704925f52b5466ab3c4f9fbab899.png)
+![](http://ssloy.github.io/tinyrenderer/img/e3cd704925f52b5466ab3c4f9fbab899.png)
 
-![](http://ssloy.github.io/tinyrenderer/boggie.png)
+![](http://ssloy.github.io/tinyrenderer/img/boggie.png)
 
 ![](http://ssloy.github.io/tinyrenderer/img/1ba93fa5a48646e2a9614271c943b4da.png)
 
