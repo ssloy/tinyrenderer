@@ -1,4 +1,4 @@
-markdown: kramdown
-kramdown:
-  input: GFM
+markdown:             kramdown
+kramdown: 
+  syntax_highlighter: rouge
 
