@@ -1,3 +1,4 @@
 markdown: redcarpet
-extensions: [fenced_code_blocks]
+redcarpet:
+    extensions: ["fenced_code_blocks"]
 
