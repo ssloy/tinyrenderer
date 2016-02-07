@@ -1,6 +1,5 @@
 ---
 title: Bresenham’s Line Drawing Algorithm
-layout: post
 ---
 
 # Bresenham’s Line Drawing Algorithm
