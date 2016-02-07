@@ -1,4 +1,4 @@
-markdown: redcarpet
+markdown: redcarpet2
 redcarpet:
-    extensions: ["fenced_code_blocks"]
+  extensions: ["no_intra_emphasis", "fenced_code_blocks", "autolink", "strikethrough", "superscript"]
 
