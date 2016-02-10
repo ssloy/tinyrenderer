@@ -1,4 +1,4 @@
-# How OpenGL works: software renderer in 500 lines of code
+# Tiny Renderer or how OpenGL works: software renderer in 500 lines of code
 
 * check [the wiki](https://github.com/ssloy/tinyrenderer/wiki/Lesson-1:-Bresenham%E2%80%99s-Line-Drawing-Algorithm) for the detailed lessons
 
