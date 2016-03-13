@@ -18,7 +18,6 @@ Vec3f        up(0,1,0);
 
 struct Shader : public IShader {
     mat<2,3,float> varying_uv;  // triangle uv coordinates, written by the vertex shader, read by the fragment shader
-    mat<4,3,float> varying_tri; // triangle coordinates (clip coordinates), written by VS, read by FS
     mat<3,3,float> varying_nrm; // normal per vertex to be interpolated by FS
 
     virtual Vec4f vertex(int iface, int nthvert) {
