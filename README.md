@@ -6,7 +6,7 @@
 
 **I do want to get emails for feedback (dmitry.sokolov@univ-lorraine.fr); do not hesitate to contact me if you have any questions.**
 
-**If you are a teacher and willing to adopt this material for teaching your class your are very welcome, no authorization is needed, simply inform me by mail, it will  help me to improve the course.**
+**If you are a teacher and want to use/adapt this material for your class - you are very welcome to do so, no authorization is needed. Simply inform me by mail, it will help me improve the course.**
 
 ***
 
