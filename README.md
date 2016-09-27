@@ -1,4 +1,4 @@
-# Tiny Renderer or how OpenGL works: software renderer in 500 lines of code
+# Tiny Renderer or how OpenGL works: software rendering in 500 lines of code
 
 ***
 
