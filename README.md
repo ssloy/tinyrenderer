@@ -14,7 +14,7 @@ In this series of articles, I want to show the way OpenGL works by writing its c
 
 So, the task is formulated as follows: using no third-party libraries (especially graphic ones), get something like this picture:
 
-![](http://haqr.eu/framebuffer.png)
+![](https://raw.githubusercontent.com/ssloy/tinyrenderer/gh-pages/img/00-home/africanhead.png)
 
 _Warning: this is a training material that will loosely repeat the structure of the OpenGL library. It will be a software renderer. **I do not want to show how to write applications for OpenGL. I want to show how OpenGL works.** I am deeply convinced that it is impossible to write efficient applications using 3D libraries without understanding this._
 
@@ -40,16 +40,15 @@ int main(int argc, char** argv) {
 
 output.tga should look something like this:
 
-![](http://www.loria.fr/~sokolovd/cg-course/img/2d3b12170b.png)
-
+![](https://raw.githubusercontent.com/ssloy/tinyrenderer/gh-pages/img/00-home/reddot.png)
 
 
 # Teaser: few examples made with the renderer
 
-![](https://hsto.org/getpro/habr/post_images/50d/e2a/be9/50de2abe990efa345664f98c9464a4c8.png)
+![](https://raw.githubusercontent.com/ssloy/tinyrenderer/gh-pages/img/00-home/demon.png)
 
-![](https://hsto.org/getpro/habr/post_images/e3c/d70/492/e3cd704925f52b5466ab3c4f9fbab899.png)
+![](https://raw.githubusercontent.com/ssloy/tinyrenderer/gh-pages/img/00-home/diablo-glow.png)
 
-![](http://www.loria.fr/~sokolovd/cg-course/06-shaders/img/boggie.png) 
+![](https://raw.githubusercontent.com/ssloy/tinyrenderer/gh-pages/img/00-home/boggie.png) 
 
-![](http://hsto.org/files/1ba/93f/a5a/1ba93fa5a48646e2a9614271c943b4da.png)
+![](https://raw.githubusercontent.com/ssloy/tinyrenderer/gh-pages/img/00-home/diablo-ssao.png)
