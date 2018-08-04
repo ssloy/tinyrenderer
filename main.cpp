@@ -20,7 +20,7 @@ void line(int x0, int y0, int x1, int y1, TGAImage& image, TGAColor color) {
   bool x_y_inverted = false;
 
   // We want to do work on a range that is longer than the domain so each pixel has a value.
-  if (abs(x1 - x0) > abs(y1 - y0)) {
+  if (std::abs(x1 - x0) > std::abs(y1 - y0)) {
     if (x0 < x1) {
         range_start = x0;
         range_end = x1;
