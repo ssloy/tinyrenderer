@@ -1,3 +1,4 @@
+#include <vector>
 #include "tgaimage.h"
 
 const TGAColor white = TGAColor(255, 255, 255, 255);
@@ -11,9 +12,23 @@ void line(int x0, int y0, int x1, int y1, TGAImage& image, TGAColor color) {
   }
 }
 
-int main(int argc, char** argv) {
+int main() {
   TGAImage image(100, 100, TGAImage::RGB);
-  line(13, 20, 80, 40, image, white);
+  std::vector<int> start = {50, 50};
+  std::vector<int> end = {40, 10};
+  std::vector<int> x_series = {end[0], end[0], -end[0], -end[0], end[1], end[1], -end[1], -end[1]};
+  std::vector<int> y_series = {end[1], -end[1], end[1], -end[1], end[0], -end[0], end[0], -end[0]};
+
+  for (size_t i = 0; i < x_series.size(); i++) {
+    line(
+        start[0],
+        start[1],
+        start[0] + x_series[i],
+        start[1] + y_series[i],
+        image,
+        TGAColor(0xff, 0xff, 0xff, 0xff));
+  }
+
   image.flip_vertically();  // i want to have the origin at the left bottom corner of the image
   image.write_tga_file("output.tga");
   return 0;
