@@ -36,18 +36,19 @@ void line(int x0, int y0, int x1, int y1, TGAImage& image, const TGAColor& color
   }
 
   // x0 is range_start, x1 is range_end, y0 is domain_start, y1 is domain_end.
-  float range_inverse = 1.0f / range;
-  float domain = y1 - y0;
-  float domain_range_inverse = domain * range_inverse;
+  // Keep in mind y1 - y0 < x1 - x0.
+  // Therefore, (y1 - y0) / (x1 - x0) < 1.
+  float domain_range_inverse = (y1 - y0) * (1.0f / range);
 
   // If range is 1, we have (range + 1) or two pixels.
-  for (int i = 0; i <= range; i++) {
-    int domain_closest = y0 + i * domain_range_inverse;
+  float domain_closest = y0;
+  for (int i = x0; i <= x1; i++) {
     if (is_range_y) {
-      image.set(domain_closest, x0 + i, color);
+      image.set(domain_closest, i, color);
     } else {
-      image.set(x0 + i, domain_closest, color);
+      image.set(i, domain_closest, color);
     }
+    domain_closest += domain_range_inverse;
   }
 }
 
@@ -59,7 +60,7 @@ int main() {
   std::vector<int> y_series = {end[1], end[0], end[0], end[1], -end[1], -end[0], -end[0], -end[1]};
 
   // This is for profiling purposes.
-  for (int j = 0; j < 1e6; j++) {
+  for (int j = 0; j < 1e5; j++) {
     for (size_t i = 0; i < x_series.size(); i++) {
       line(
           start[0],
