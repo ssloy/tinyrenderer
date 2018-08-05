@@ -1,0 +1,16 @@
+---
+BasedOnStyle: Google
+Language:        Cpp
+AccessModifierOffset: -2
+ColumnLimit: 100
+DerivePointerAlignment: false
+PointerAlignment: Left
+AlignAfterOpenBracket: AlwaysBreak
+BinPackArguments: false
+BinPackParameters: false
+---
+Language: Proto
+ColumnLimit: 100
+SpacesInContainerLiterals: false
+AllowShortFunctionsOnASingleLine: false
+...
