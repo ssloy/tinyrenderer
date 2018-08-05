@@ -12,7 +12,7 @@ void line2(int x0, int y0, int x1, int y1, TGAImage& image, TGAColor color) {
   }
 }
 
-void line(int x0, int y0, int x1, int y1, TGAImage& image, TGAColor color) {
+void line(int x0, int y0, int x1, int y1, TGAImage& image, const TGAColor& color) {
   int range_start;
   int range_end;
   int domain_start;
@@ -73,7 +73,7 @@ int main() {
   std::vector<int> y_series = {end[1], end[0], end[0], end[1], -end[1], -end[0], -end[0], -end[1]};
 
   // This is for profiling purposes.
-  for (int j = 0; j < 1e5; j++) {
+  for (int j = 0; j < 1e6; j++) {
     for (size_t i = 0; i < x_series.size(); i++) {
         line(
             start[0],
