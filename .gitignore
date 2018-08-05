@@ -1,4 +1,4 @@
 *.o
 framebuffer.tga
 main
-output.tga
+*.tga

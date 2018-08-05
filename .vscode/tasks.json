@@ -34,7 +34,7 @@
         {
             "label": "image",
             "type": "shell",
-            "command": "open output.tga",
+            "command": "open *.tga",
             "dependsOn": [
                 "build image"
             ],

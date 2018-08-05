@@ -1,4 +1,6 @@
+#include <string>
 #include <vector>
+#include "model.h"
 #include "tgaimage.h"
 
 const TGAColor white = TGAColor(255, 255, 255, 255);
@@ -52,8 +54,11 @@ void line(int x0, int y0, int x1, int y1, TGAImage& image, const TGAColor& color
   }
 }
 
-int main() {
-  TGAImage image(500, 500, TGAImage::RGB);
+void renderLines() {
+  const int width = 500;
+  const int height = 500;
+
+  TGAImage image(width, height, TGAImage::RGB);
   std::vector<int> start = {250, 250};
   std::vector<int> end = {80, 41};
   std::vector<int> x_series = {end[0], end[1], -end[1], -end[0], -end[0], -end[1], end[1], end[0]};
@@ -74,5 +79,34 @@ int main() {
 
   image.flip_vertically();  // i want to have the origin at the left bottom corner of the image
   image.write_tga_file("output.tga");
+}
+
+void renderModel() {
+  std::string kModelFileName = "obj/african_head/african_head.obj";
+  std::unique_ptr<Model> model = std::make_unique<Model>(kModelFileName.c_str());
+  const int width = 800;
+  const int height = 600;
+
+  TGAImage image(width, height, TGAImage::RGB);
+  for (int i = 0; i < model->nfaces(); i++) {
+    std::vector<int> face = model->face(i);
+    for (int j = 0; j < 3; j++) {
+      Vec3f v0 = model->vert(face[j]);
+      Vec3f v1 = model->vert(face[(j + 1) % 3]);
+      int x0 = (v0.x + 1.) * width / 2.;
+      int y0 = (v0.y + 1.) * height / 2.;
+      int x1 = (v1.x + 1.) * width / 2.;
+      int y1 = (v1.y + 1.) * height / 2.;
+      line(x0, y0, x1, y1, image, white);
+    }
+  }
+
+  image.flip_vertically();  // i want to have the origin at the left bottom corner of the image
+  image.write_tga_file("output2.tga");
+}
+
+int main() {
+  renderLines();
+  renderModel();
   return 0;
 }
