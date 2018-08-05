@@ -72,14 +72,17 @@ int main() {
   std::vector<int> x_series = {end[0], end[1], -end[1], -end[0], -end[0], -end[1], end[1], end[0]};
   std::vector<int> y_series = {end[1], end[0], end[0], end[1], -end[1], -end[0], -end[0], -end[1]};
 
-  for (size_t i = 0; i < x_series.size(); i++) {
-    line(
-        start[0],
-        start[1],
-        (start[0] + x_series[i]),
-        (start[1] + y_series[i]),
-        image,
-        TGAColor(0xff - (i * 20), 0xff - (i * 20), 0xff - (i * 20), 0xff));
+  // This is for profiling purposes.
+  for (int j = 0; j < 1e5; j++) {
+    for (size_t i = 0; i < x_series.size(); i++) {
+        line(
+            start[0],
+            start[1],
+            (start[0] + x_series[i]),
+            (start[1] + y_series[i]),
+            image,
+            TGAColor(0xff - (i * 20), 0xff - (i * 20), 0xff - (i * 20), 0xff));
+    }
   }
 
   image.flip_vertically();  // i want to have the origin at the left bottom corner of the image
