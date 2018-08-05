@@ -13,58 +13,42 @@ void line2(int x0, int y0, int x1, int y1, TGAImage& image, TGAColor color) {
 }
 
 void line(int x0, int y0, int x1, int y1, TGAImage& image, const TGAColor& color) {
-  int range_start;
-  int range_end;
-  int domain_start;
-  int domain_end;
-  bool x_y_inverted = false;
+  bool is_range_y = false;
 
   // We want to do work on a range that is longer than the domain so each pixel has a value.
-  if (std::abs(x1 - x0) > std::abs(y1 - y0)) {
-    if (x0 < x1) {
-        range_start = x0;
-        range_end = x1;
-        domain_start = y0;
-        domain_end = y1;
-    } else {
-        range_start = x1;
-        range_end = x0;
-        domain_start = y1;
-        domain_end = y0;
-    }
-  } else {
-    x_y_inverted = true;
-    if (y0 < y1) {
-        range_start = y0;
-        range_end = y1;
-        domain_start = x0;
-        domain_end = x1;
-    } else {
-        range_start = y1;
-        range_end = y0;
-        domain_start = x1;
-        domain_end = x0;
-    }
+  if (std::abs(y1 - y0) > std::abs(x1 - x0)) {
+    is_range_y = true;
+    std::swap(x0, y0);
+    std::swap(x1, y1);
   }
 
-  // TODO: check not inf.
-  int range = range_end - range_start;
+  if (x0 > x1) {
+    std::swap(x0, x1);
+    std::swap(y0, y1);
+  }
+
+  int range = x1 - x0;
+
+  // If points are same exit.
+  if (range == 0) {
+    image.set(x0, y0, color);
+    return;
+  }
+
+  // x0 is range_start, x1 is range_end, y0 is domain_start, y1 is domain_end.
   float range_inverse = 1.0f / range;
-  float domain = domain_end - domain_start;
+  float domain = y1 - y0;
   float domain_range_inverse = domain * range_inverse;
 
   // If range is 1, we have (range + 1) or two pixels.
   for (int i = 0; i <= range; i++) {
-    int domain_delta = static_cast<int>(static_cast<float>(i) * domain_range_inverse);
-    int domain_closest = domain_start + domain_delta;
-
-    if (!x_y_inverted) {
-        image.set(range_start + i, domain_closest, color);
+    int domain_closest = y0 + i * domain_range_inverse;
+    if (is_range_y) {
+      image.set(domain_closest, x0 + i, color);
     } else {
-        image.set(domain_closest, range_start + i, color);
+      image.set(x0 + i, domain_closest, color);
     }
   }
-
 }
 
 int main() {
@@ -77,13 +61,13 @@ int main() {
   // This is for profiling purposes.
   for (int j = 0; j < 1e6; j++) {
     for (size_t i = 0; i < x_series.size(); i++) {
-        line(
-            start[0],
-            start[1],
-            (start[0] + x_series[i]),
-            (start[1] + y_series[i]),
-            image,
-            TGAColor(0xff - (i * 20), 0xff - (i * 20), 0xff - (i * 20), 0xff));
+      line(
+          start[0],
+          start[1],
+          (start[0] + x_series[i]),
+          (start[1] + y_series[i]),
+          image,
+          TGAColor(0xff - (i * 20), 0xff - (i * 20), 0xff - (i * 20), 0xff));
     }
   }
 
