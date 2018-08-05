@@ -48,18 +48,20 @@ void line(int x0, int y0, int x1, int y1, TGAImage& image, const TGAColor& color
   }
 
   // TODO: check not inf.
-  float range_inverse = (1.0f / static_cast<float>(range_end - range_start));
-  float domain = static_cast<float>(domain_end - domain_start);
+  int range = range_end - range_start;
+  float range_inverse = 1.0f / range;
+  float domain = domain_end - domain_start;
   float domain_range_inverse = domain * range_inverse;
 
-  for (int range_current = range_start; range_current < range_end; range_current++) {
-    int domain_delta = static_cast<int>(static_cast<float>(range_current - range_start) * domain_range_inverse);
+  // If range is 1, we have (range + 1) or two pixels.
+  for (int i = 0; i <= range; i++) {
+    int domain_delta = static_cast<int>(static_cast<float>(i) * domain_range_inverse);
     int domain_closest = domain_start + domain_delta;
 
     if (!x_y_inverted) {
-        image.set(range_current, domain_closest, color);
+        image.set(range_start + i, domain_closest, color);
     } else {
-        image.set(domain_closest, range_current, color);
+        image.set(domain_closest, range_start + i, color);
     }
   }
 
