@@ -4,7 +4,7 @@
 
 **Check [the wiki](https://github.com/ssloy/tinyrenderer/wiki/Lesson-1:-Bresenham%E2%80%99s-Line-Drawing-Algorithm) for the detailed lessons. My source code is irrelevant. Read the wiki and implement your own renderer. Only when you suffer through all the tiny details you will learn what is going on.**
 
-**This is a tiny software rasterizer, if you are looking for a tiny software ray tracer, you can find it [here](https://github.com/ssloy/tinyraytracer).**
+**This is a tiny software rasterizer, if you are looking for a tiny software ray tracer, you can find it [here (part 1)](https://github.com/ssloy/tinyraytracer) and [here (part 2)](https://github.com/ssloy/tinykaboom).****
 
 **I do want to get emails for feedback (dmitry.sokolov@univ-lorraine.fr); do not hesitate to contact me if you have any questions.**
 
