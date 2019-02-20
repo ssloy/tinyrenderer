@@ -1,16 +1,7 @@
 # Tiny Renderer or how OpenGL works: software rendering in 500 lines of code
 
-***
 
-Check [the wiki](https://github.com/ssloy/tinyrenderer/wiki/Lesson-1:-Bresenham%E2%80%99s-Line-Drawing-Algorithm) for the detailed lessons. My source code is irrelevant. Read the wiki and implement your own renderer. Only when you suffer through all the tiny details you will learn what is going on.
-
-**This is a tiny software rasterizer, if you are looking for a tiny software ray tracer, you can find it [here (part 1)](https://github.com/ssloy/tinyraytracer) and [here (part 2)](https://github.com/ssloy/tinykaboom).***
-
-I do want to get emails for feedback (dmitry.sokolov@univ-lorraine.fr); do not hesitate to contact me if you have any questions.
-
-If you are a teacher and want to use/adapt this material for your class - you are very welcome to do so, no authorization is needed. Simply inform me by mail, it will help me improve the course.
-
-***
+**Check [the wiki](https://github.com/ssloy/tinyrenderer/wiki) for the detailed lessons. My source code is irrelevant. Read the wiki and implement your own renderer. Only when you suffer through all the tiny details you will learn what is going on.**
 
 In this series of articles, I want to show the way OpenGL works by writing its clone (a much simplified one). Surprisingly enough, I often meet people who cannot overcome the initial hurdle of learning OpenGL / DirectX. Thus, I have prepared a short series of lectures, after which my students show quite good renderers.
 
