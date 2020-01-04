@@ -1,3 +1,4 @@
 *.o
+*.d
 framebuffer.tga
 main
