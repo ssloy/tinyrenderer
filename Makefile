@@ -1,5 +1,5 @@
 SYSCONF_LINK = g++
-CPPFLAGS     = -Wall -Wextra -Weffc++ -pedantic -std=c++98
+CPPFLAGS     = -MD -Wall -Wextra -Weffc++ -pedantic -std=c++98
 LDFLAGS      = -O3
 LIBS         = -lm
 
@@ -7,6 +7,7 @@ DESTDIR = ./
 TARGET  = main
 
 OBJECTS := $(patsubst %.cpp,%.o,$(wildcard *.cpp))
+DEPS=$(OBJECTS:.o=.d)
 
 all: $(DESTDIR)$(TARGET)
 
@@ -20,4 +21,6 @@ clean:
 	-rm -f $(OBJECTS)
 	-rm -f $(TARGET)
 	-rm -f *.tga
+	-rm -f $(DEPS)
 
+-include $(DEPS)
