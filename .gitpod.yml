@@ -7,6 +7,6 @@ tasks:
     cmake .. &&
     make &&
     ./tinyrenderer ../obj/diablo3_pose/diablo3_pose.obj ../obj/floor.obj &&
-    convert framebuffer.tga > framebuffer.png &&
+    convert framebuffer.tga framebuffer.png &&
     open framebuffer.png &&
     cd ..
