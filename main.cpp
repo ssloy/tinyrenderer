@@ -18,7 +18,6 @@ struct Shader : IShader {
     const Model &model;
     vec3 l;               // light direction in normalized device coordinates
     mat<2,3> varying_uv;  // triangle uv coordinates, written by the vertex shader, read by the fragment shader
-    mat<4,3> varying_tri; // triangle coordinates (clip coordinates), written by VS, read by FS
     mat<3,3> varying_nrm; // normal per vertex to be interpolated by FS
     mat<3,3> ndc_tri;     // triangle in normalized device coordinates
 
@@ -30,7 +29,6 @@ struct Shader : IShader {
         varying_uv.set_col(nthvert, model.uv(iface, nthvert));
         varying_nrm.set_col(nthvert, proj<3>((Projection*ModelView).invert_transpose()*embed<4>(model.normal(iface, nthvert), 0.)));
         vec4 gl_Vertex = Projection*ModelView*embed<4>(model.vert(iface, nthvert));
-        varying_tri.set_col(nthvert, gl_Vertex);
         ndc_tri.set_col(nthvert, proj<3>(gl_Vertex/gl_Vertex[3]));
         return gl_Vertex;
     }
@@ -41,7 +39,6 @@ struct Shader : IShader {
 
         // for the math refer to the tangent space normal mapping lecture
         // https://github.com/ssloy/tinyrenderer/wiki/Lesson-6bis-tangent-space-normal-mapping
-
         mat<3,3> AI = mat<3,3>{ {ndc_tri.col(1) - ndc_tri.col(0), ndc_tri.col(2) - ndc_tri.col(0), bn} }.invert();
         vec3 i = AI * vec3(varying_uv[0][1] - varying_uv[0][0], varying_uv[0][2] - varying_uv[0][0], 0);
         vec3 j = AI * vec3(varying_uv[1][1] - varying_uv[1][0], varying_uv[1][2] - varying_uv[1][0], 0);
@@ -50,7 +47,7 @@ struct Shader : IShader {
         vec3 n = (B * model.normal(uv)).normalize(); // transform the normal from the texture to the tangent space
 
         double diff = std::max(0., n*l); // diffuse light intensity
-        vec3 r = (n*(n*l)*2 - l).normalize(); // reflected light direction
+        vec3 r = (n*(n*l)*2 - l).normalize(); // reflected light direction, specular mapping is described here: https://github.com/ssloy/tinyrenderer/wiki/Lesson-6-Shaders-for-the-software-renderer
         double spec = std::pow(std::max(r.z, 0.), 5+model.specular(uv)); // specular intensity, note that the camera lies on the z-axis (in ndc), therefore simple r.z
 
         TGAColor c = model.diffuse(uv);
@@ -77,9 +74,10 @@ int main(int argc, char** argv) {
         Model model(argv[m]);
         Shader shader(model);
         for (int i=0; i<model.nfaces(); i++) { // for every triangle
+            vec4 clip_vert[3]; // triangle coordinates (clip coordinates), written by VS, read by FS
             for (int j=0; j<3; j++)
-                shader.vertex(i, j); // call the vertex shader for each triangle vertex
-            triangle(shader.varying_tri, shader, framebuffer, zbuffer); // actual rasterization routine call
+                clip_vert[j] = shader.vertex(i, j); // call the vertex shader for each triangle vertex
+            triangle(clip_vert, shader, framebuffer, zbuffer); // actual rasterization routine call
         }
     }
     framebuffer.write_tga_file("framebuffer.tga"); // the vertical flip is moved inside the function

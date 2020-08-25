@@ -12,6 +12,6 @@ struct IShader {
     virtual bool fragment(const vec3 bar, TGAColor &color) = 0;
 };
 
-void triangle(const mat<4,3> &pts, IShader &shader, TGAImage &image, std::vector<double> &zbuffer);
+void triangle(const vec4 clip_verts[3], IShader &shader, TGAImage &image, std::vector<double> &zbuffer);
 #endif //__OUR_GL_H__
 
