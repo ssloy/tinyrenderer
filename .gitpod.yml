@@ -1,0 +1,12 @@
+image:
+  file: Dockerfile
+tasks:
+- command: >
+    mkdir --parents build &&
+    cd build &&
+    cmake .. &&
+    make &&
+    ./tinyrenderer ../obj/diablo3_pose/diablo3_pose.obj ../obj/floor.obj &&
+    convert framebuffer.tga > framebuffer.png &&
+    open framebuffer.png &&
+    cd ..
