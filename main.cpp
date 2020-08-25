@@ -6,8 +6,6 @@
 #include "geometry.h"
 #include "our_gl.h"
 
-Model *model        = NULL;
-
 const int width  = 800;
 const int height = 800;
 
@@ -17,15 +15,17 @@ Vec3f    center(0,0,0);
 Vec3f        up(0,1,0);
 
 struct Shader : public IShader {
+    const Model &model;
+    Shader(const Model &m) : model(m) {}
     mat<2,3,float> varying_uv;  // triangle uv coordinates, written by the vertex shader, read by the fragment shader
     mat<4,3,float> varying_tri; // triangle coordinates (clip coordinates), written by VS, read by FS
     mat<3,3,float> varying_nrm; // normal per vertex to be interpolated by FS
     mat<3,3,float> ndc_tri;     // triangle in normalized device coordinates
 
     virtual Vec4f vertex(int iface, int nthvert) {
-        varying_uv.set_col(nthvert, model->uv(iface, nthvert));
-        varying_nrm.set_col(nthvert, proj<3>((Projection*ModelView).invert_transpose()*embed<4>(model->normal(iface, nthvert), 0.f)));
-        Vec4f gl_Vertex = Projection*ModelView*embed<4>(model->vert(iface, nthvert));
+        varying_uv.set_col(nthvert, model.uv(iface, nthvert));
+        varying_nrm.set_col(nthvert, proj<3>((Projection*ModelView).invert_transpose()*embed<4>(model.normal(iface, nthvert), 0.f)));
+        Vec4f gl_Vertex = Projection*ModelView*embed<4>(model.vert(iface, nthvert));
         varying_tri.set_col(nthvert, gl_Vertex);
         ndc_tri.set_col(nthvert, proj<3>(gl_Vertex/gl_Vertex[3]));
         return gl_Vertex;
@@ -50,10 +50,10 @@ struct Shader : public IShader {
         B.set_col(1, j.normalize());
         B.set_col(2, bn);
 
-        Vec3f n = (B*model->normal(uv)).normalize();
+        Vec3f n = (B*model.normal(uv)).normalize();
 
         float diff = std::max(0.f, n*light_dir);
-        color = model->diffuse(uv)*diff;
+        color = model.diffuse(uv)*diff;
 
         return false;
     }
@@ -75,17 +75,15 @@ int main(int argc, char** argv) {
     light_dir = proj<3>((Projection*ModelView*embed<4>(light_dir, 0.f))).normalize();
 
     for (int m=1; m<argc; m++) {
-        model = new Model(argv[m]);
-        Shader shader;
-        for (int i=0; i<model->nfaces(); i++) {
+        Model model(argv[m]);
+        Shader shader(model);
+        for (int i=0; i<model.nfaces(); i++) {
             for (int j=0; j<3; j++) {
                 shader.vertex(i, j);
             }
             triangle(shader.varying_tri, shader, frame, zbuffer);
         }
-        delete model;
     }
-    frame.flip_vertically(); // to place the origin in the bottom left corner of the image
     frame.write_tga_file("framebuffer.tga");
 
     delete [] zbuffer;
