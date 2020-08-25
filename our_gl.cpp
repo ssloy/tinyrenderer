@@ -6,18 +6,11 @@ mat<4,4> Viewport;
 mat<4,4> Projection;
 
 void viewport(const int x, const int y, const int w, const int h) {
-    Viewport = mat<4,4>::identity();
-    Viewport[0][3] = x+w/2.;
-    Viewport[1][3] = y+h/2.;
-    Viewport[2][3] = 1.;
-    Viewport[0][0] = w/2.;
-    Viewport[1][1] = h/2.;
-    Viewport[2][2] = 0;
+    Viewport = {{{w/2., 0, 0, x+w/2.}, {0, h/2., 0, y+h/2.}, {0,0,1,0}, {0,0,0,1}}};
 }
 
 void projection(const double coeff) {
-    Projection = mat<4,4>::identity();
-    Projection[3][2] = coeff;
+    Projection = {{{1,0,0,0}, {0,1,0,0}, {0,0,1,0}, {0,0,coeff,1}}};
 }
 
 void lookat(const vec3 eye, const vec3 center, const vec3 up) {

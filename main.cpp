@@ -51,7 +51,7 @@ struct Shader : IShader {
 
         double diff = std::max(0., n*l); // diffuse light intensity
         vec3 r = (n*(n*l)*2 - l).normalize(); // reflected light direction
-        double spec = std::pow(std::max(r.z, 0.), 5+model.specular(uv)); // specular intensity
+        double spec = std::pow(std::max(r.z, 0.), 5+model.specular(uv)); // specular intensity, note that the camera lies on the z-axis (in ndc), therefore simple r.z
 
         TGAColor c = model.diffuse(uv);
         for (int i=0; i<3; i++)
