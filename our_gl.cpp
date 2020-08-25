@@ -3,33 +3,33 @@
 #include <cstdlib>
 #include "our_gl.h"
 
-Matrix ModelView;
-Matrix Viewport;
-Matrix Projection;
+mat44 ModelView;
+mat44 Viewport;
+mat44 Projection;
 
 IShader::~IShader() {}
 
-void viewport(int x, int y, int w, int h) {
-    Viewport = Matrix::identity();
-    Viewport[0][3] = x+w/2.f;
-    Viewport[1][3] = y+h/2.f;
-    Viewport[2][3] = 1.f;
-    Viewport[0][0] = w/2.f;
-    Viewport[1][1] = h/2.f;
+void viewport(const int x, const int y, const int w, const int h) {
+    Viewport = mat44::identity();
+    Viewport[0][3] = x+w/2.;
+    Viewport[1][3] = y+h/2.;
+    Viewport[2][3] = 1.;
+    Viewport[0][0] = w/2.;
+    Viewport[1][1] = h/2.;
     Viewport[2][2] = 0;
 }
 
-void projection(float coeff) {
-    Projection = Matrix::identity();
+void projection(const double coeff) {
+    Projection = mat44::identity();
     Projection[3][2] = coeff;
 }
 
-void lookat(Vec3f eye, Vec3f center, Vec3f up) {
-    Vec3f z = (eye-center).normalize();
-    Vec3f x = cross(up,z).normalize();
-    Vec3f y = cross(z,x).normalize();
-    Matrix Minv = Matrix::identity();
-    Matrix Tr   = Matrix::identity();
+void lookat(const vec3 eye, const vec3 center, const vec3 up) {
+    vec3 z = (eye-center).normalize();
+    vec3 x = cross(up,z).normalize();
+    vec3 y = cross(z,x).normalize();
+    mat44 Minv = mat44::identity();
+    mat44 Tr   = mat44::identity();
     for (int i=0; i<3; i++) {
         Minv[0][i] = x[i];
         Minv[1][i] = y[i];
@@ -39,41 +39,41 @@ void lookat(Vec3f eye, Vec3f center, Vec3f up) {
     ModelView = Minv*Tr;
 }
 
-Vec3f barycentric(Vec2f A, Vec2f B, Vec2f C, Vec2f P) {
-    Vec3f s[2];
+vec3 barycentric(const vec2 A, const vec2 B, const vec2 C, const vec2 P) {
+    vec3 s[2];
     for (int i=2; i--; ) {
         s[i][0] = C[i]-A[i];
         s[i][1] = B[i]-A[i];
         s[i][2] = A[i]-P[i];
     }
-    Vec3f u = cross(s[0], s[1]);
+    vec3 u = cross(s[0], s[1]);
     if (std::abs(u[2])>1e-2) // dont forget that u[2] is integer. If it is zero then triangle ABC is degenerate
-        return Vec3f(1.f-(u.x+u.y)/u.z, u.y/u.z, u.x/u.z);
-    return Vec3f(-1,1,1); // in this case generate negative coordinates, it will be thrown away by the rasterizator
+        return vec3(1.-(u.x+u.y)/u.z, u.y/u.z, u.x/u.z);
+    return vec3(-1,1,1); // in this case generate negative coordinates, it will be thrown away by the rasterizator
 }
 
-void triangle(mat<4,3,float> &clipc, IShader &shader, TGAImage &image, float *zbuffer) {
-    mat<3,4,float> pts  = (Viewport*clipc).transpose(); // transposed to ease access to each of the points
-    mat<3,2,float> pts2;
+void triangle(const mat<4,3> &clipc, IShader &shader, TGAImage &image, std::vector<double> &zbuffer) {
+    mat<3,4> pts  = (Viewport*clipc).transpose(); // transposed to ease access to each of the points
+    mat<3,2> pts2;
     for (int i=0; i<3; i++) pts2[i] = proj<2>(pts[i]/pts[i][3]);
 
-    Vec2f bboxmin( std::numeric_limits<float>::max(),  std::numeric_limits<float>::max());
-    Vec2f bboxmax(-std::numeric_limits<float>::max(), -std::numeric_limits<float>::max());
-    Vec2f clamp(image.get_width()-1, image.get_height()-1);
-    for (int i=0; i<3; i++) {
+    vec2 bboxmin( std::numeric_limits<double>::max(),  std::numeric_limits<double>::max());
+    vec2 bboxmax(-std::numeric_limits<double>::max(), -std::numeric_limits<double>::max());
+    vec2 clamp(image.get_width()-1, image.get_height()-1);
+    for (int i=0; i<3; i++)
         for (int j=0; j<2; j++) {
-            bboxmin[j] = std::max(0.f,      std::min(bboxmin[j], pts2[i][j]));
+            bboxmin[j] = std::max(0.,       std::min(bboxmin[j], pts2[i][j]));
             bboxmax[j] = std::min(clamp[j], std::max(bboxmax[j], pts2[i][j]));
         }
-    }
-    TGAColor color;
-    for (int x=bboxmin.x; x<=bboxmax.x; x++) {
-        for (int y=bboxmin.y; y<=bboxmax.y; y++) {
-            Vec3f bc_screen  = barycentric(pts2[0], pts2[1], pts2[2], {x,y});
-            Vec3f bc_clip    = Vec3f(bc_screen.x/pts[0][3], bc_screen.y/pts[1][3], bc_screen.z/pts[2][3]);
+#pragma omp parallel for
+    for (int x=(int)bboxmin.x; x<=(int)bboxmax.x; x++) {
+        for (int y=(int)bboxmin.y; y<=(int)bboxmax.y; y++) {
+            vec3 bc_screen  = barycentric(pts2[0], pts2[1], pts2[2], {(double)x, (double)y});
+            vec3 bc_clip    = vec3(bc_screen.x/pts[0][3], bc_screen.y/pts[1][3], bc_screen.z/pts[2][3]);
             bc_clip = bc_clip/(bc_clip.x+bc_clip.y+bc_clip.z);
-            float frag_depth = clipc[2]*bc_clip;
+            double frag_depth = clipc[2]*bc_clip;
             if (bc_screen.x<0 || bc_screen.y<0 || bc_screen.z<0 || zbuffer[x+y*image.get_width()]>frag_depth) continue;
+            TGAColor color;
             bool discard = shader.fragment(bc_clip, color);
             if (!discard) {
                 zbuffer[x+y*image.get_width()] = frag_depth;

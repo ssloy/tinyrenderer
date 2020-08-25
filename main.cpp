@@ -1,61 +1,64 @@
 #include <vector>
 #include <limits>
 #include <iostream>
+#include <cmath>
 #include "tgaimage.h"
 #include "model.h"
 #include "geometry.h"
 #include "our_gl.h"
 
-const int width  = 800;
-const int height = 800;
+constexpr int width  = 800; // output image size
+constexpr int height = 800;
 
-Vec3f light_dir(1,1,1);
-Vec3f       eye(1,1,3);
-Vec3f    center(0,0,0);
-Vec3f        up(0,1,0);
+const vec3 light_dir(1,1,1); // light source
+const vec3       eye(1,1,3); // camera position
+const vec3    center(0,0,0); // camera direction
+const vec3        up(0,1,0); // camera up vector
 
 struct Shader : public IShader {
     const Model &model;
-    Shader(const Model &m) : model(m) {}
-    mat<2,3,float> varying_uv;  // triangle uv coordinates, written by the vertex shader, read by the fragment shader
-    mat<4,3,float> varying_tri; // triangle coordinates (clip coordinates), written by VS, read by FS
-    mat<3,3,float> varying_nrm; // normal per vertex to be interpolated by FS
-    mat<3,3,float> ndc_tri;     // triangle in normalized device coordinates
+    vec3 l;               // light direction in normalized device coordinates
+    mat<2,3> varying_uv;  // triangle uv coordinates, written by the vertex shader, read by the fragment shader
+    mat<4,3> varying_tri; // triangle coordinates (clip coordinates), written by VS, read by FS
+    mat<3,3> varying_nrm; // normal per vertex to be interpolated by FS
+    mat<3,3> ndc_tri;     // triangle in normalized device coordinates
 
-    virtual Vec4f vertex(int iface, int nthvert) {
+    Shader(const Model &m) : model(m) {
+        l = proj<3>((Projection*ModelView*embed<4>(light_dir, 0.))).normalize(); // transform the light vector to the normalized device coordinates
+    }
+
+    virtual vec4 vertex(const int iface, const int nthvert) {
         varying_uv.set_col(nthvert, model.uv(iface, nthvert));
-        varying_nrm.set_col(nthvert, proj<3>((Projection*ModelView).invert_transpose()*embed<4>(model.normal(iface, nthvert), 0.f)));
-        Vec4f gl_Vertex = Projection*ModelView*embed<4>(model.vert(iface, nthvert));
+        varying_nrm.set_col(nthvert, proj<3>((Projection*ModelView).invert_transpose()*embed<4>(model.normal(iface, nthvert), 0.)));
+        vec4 gl_Vertex = Projection*ModelView*embed<4>(model.vert(iface, nthvert));
         varying_tri.set_col(nthvert, gl_Vertex);
         ndc_tri.set_col(nthvert, proj<3>(gl_Vertex/gl_Vertex[3]));
         return gl_Vertex;
     }
 
-    virtual bool fragment(Vec3f bar, TGAColor &color) {
-        Vec3f bn = (varying_nrm*bar).normalize();
-        Vec2f uv = varying_uv*bar;
+    virtual bool fragment(const vec3 bar, TGAColor &color) {
+        vec3 bn = (varying_nrm*bar).normalize(); // per-vertex normal interpolation
+        vec2 uv = varying_uv*bar; // tex coord interpolation
 
-        mat<3,3,float> A;
-        A[0] = ndc_tri.col(1) - ndc_tri.col(0);
-        A[1] = ndc_tri.col(2) - ndc_tri.col(0);
-        A[2] = bn;
+        // for the math refer to the tangent space normal mapping lecture
+        // https://github.com/ssloy/tinyrenderer/wiki/Lesson-6bis-tangent-space-normal-mapping
 
-        mat<3,3,float> AI = A.invert();
+        mat<3,3> AI = mat<3,3>{ {ndc_tri.col(1) - ndc_tri.col(0), ndc_tri.col(2) - ndc_tri.col(0), bn} }.invert();
+        vec3 i = AI * vec3(varying_uv[0][1] - varying_uv[0][0], varying_uv[0][2] - varying_uv[0][0], 0);
+        vec3 j = AI * vec3(varying_uv[1][1] - varying_uv[1][0], varying_uv[1][2] - varying_uv[1][0], 0);
+        mat<3,3> B = mat<3,3>{ {i.normalize(), j.normalize(), bn} }.transpose();
 
-        Vec3f i = AI * Vec3f(varying_uv[0][1] - varying_uv[0][0], varying_uv[0][2] - varying_uv[0][0], 0);
-        Vec3f j = AI * Vec3f(varying_uv[1][1] - varying_uv[1][0], varying_uv[1][2] - varying_uv[1][0], 0);
+        vec3 n = (B * model.normal(uv)).normalize(); // transform the normal from the texture to the tangent space
 
-        mat<3,3,float> B;
-        B.set_col(0, i.normalize());
-        B.set_col(1, j.normalize());
-        B.set_col(2, bn);
+        double diff = std::max(0., n*l); // diffuse light intensity
+        vec3 r = (n*(n*l)*2 - l).normalize(); // reflected light direction
+        double spec = std::pow(std::max(r.z, 0.), 5+model.specular(uv)); // specular intensity
 
-        Vec3f n = (B*model.normal(uv)).normalize();
+        TGAColor c = model.diffuse(uv);
+        for (int i=0; i<3; i++)
+            color[i] = std::min<int>(10 + c[i]*(diff + spec), 255); // (a bit of ambient light, diff + spec), clamp the result
 
-        float diff = std::max(0.f, n*light_dir);
-        color = model.diffuse(uv)*diff;
-
-        return false;
+        return false; // the pixel is not discarded
     }
 };
 
@@ -65,28 +68,23 @@ int main(int argc, char** argv) {
         return 1;
     }
 
-    float *zbuffer = new float[width*height];
-    for (int i=width*height; i--; zbuffer[i] = -std::numeric_limits<float>::max());
+    std::vector<double> zbuffer(width*height, -std::numeric_limits<double>::max());
 
-    TGAImage frame(width, height, TGAImage::RGB);
-    lookat(eye, center, up);
-    viewport(width/8, height/8, width*3/4, height*3/4);
-    projection(-1.f/(eye-center).norm());
-    light_dir = proj<3>((Projection*ModelView*embed<4>(light_dir, 0.f))).normalize();
+    TGAImage framebuffer(width, height, TGAImage::RGB); // the output image
+    lookat(eye, center, up);                            // build the ModelView matrix
+    viewport(width/8, height/8, width*3/4, height*3/4); // build the Viewport matrix
+    projection(-1.f/(eye-center).norm());               // build the Projection matrix
 
-    for (int m=1; m<argc; m++) {
+    for (int m=1; m<argc; m++) { // iterate through all input objects
         Model model(argv[m]);
         Shader shader(model);
-        for (int i=0; i<model.nfaces(); i++) {
-            for (int j=0; j<3; j++) {
-                shader.vertex(i, j);
-            }
-            triangle(shader.varying_tri, shader, frame, zbuffer);
+        for (int i=0; i<model.nfaces(); i++) { // for every triangle
+            for (int j=0; j<3; j++)
+                shader.vertex(i, j); // call the vertex shader for each triangle vertex
+            triangle(shader.varying_tri, shader, framebuffer, zbuffer); // actual rasterization routine call
         }
     }
-    frame.write_tga_file("framebuffer.tga");
-
-    delete [] zbuffer;
+    framebuffer.write_tga_file("framebuffer.tga"); // the vertical flip is moved inside the function
     return 0;
 }
 

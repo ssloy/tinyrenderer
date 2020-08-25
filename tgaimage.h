@@ -37,9 +37,9 @@ struct TGAColor {
 
     std::uint8_t& operator[](const int i) { return bgra[i]; }
 
-    TGAColor operator *(const float intensity) const {
+    TGAColor operator *(const double intensity) const {
         TGAColor res = *this;
-        float clamped = std::max(0.f, std::min(intensity, 1.f));
+        double clamped = std::max(0., std::min(intensity, 1.));
         for (int i=0; i<4; i++) res.bgra[i] = bgra[i]*clamped;
         return res;
     }
