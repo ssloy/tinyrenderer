@@ -1,7 +1,26 @@
 # Tiny Renderer or how OpenGL works: software rendering in 500 lines of code
 
+**Check [the wiki](https://github.com/ssloy/tinyrenderer/wiki) for the detailed lessons.**
 
-**Check [the wiki](https://github.com/ssloy/tinyrenderer/wiki) for the detailed lessons. My source code is irrelevant. Read the wiki and implement your own renderer. Only when you suffer through all the tiny details you will learn what is going on.**
+## compilation
+```sh
+git clone https://github.com/ssloy/tinyrenderer.git &&
+cd tinyrenderer &&
+mkdir build &&
+cd build &&
+cmake .. &&
+make &&
+./tinyrenderer ../obj/diablo3_pose/diablo3_pose.obj ../obj/floor.obj
+```
+
+You can open the project in Gitpod, a free online dev evironment for GitHub:
+[![Open in Gitpod](https://gitpod.io/button/open-in-gitpod.svg)](https://gitpod.io/#https://github.com/ssloy/tinyrenderer)
+On open, the editor will compile & run the program as well as open the resulting image in the editor's preview.
+Just change the code in the editor and rerun the script (use the terminal's history) to see updated images.
+
+## Principles
+
+**My source code is irrelevant. Read the wiki and implement your own renderer. Only when you suffer through all the tiny details you will learn what is going on.**
 
 In this series of articles, I want to show the way OpenGL works by writing its clone (a much simplified one). Surprisingly enough, I often meet people who cannot overcome the initial hurdle of learning OpenGL / DirectX. Thus, I have prepared a short series of lectures, after which my students show quite good renderers.
 
