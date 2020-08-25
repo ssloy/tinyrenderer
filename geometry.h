@@ -231,7 +231,6 @@ template<> struct dt<1> {
 typedef vec<2> vec2;
 typedef vec<3> vec3;
 typedef vec<4> vec4;
-typedef mat<4,4> mat44;
 vec3 cross(const vec3 &v1, const vec3 &v2);
 
 #endif //__GEOMETRY_H__

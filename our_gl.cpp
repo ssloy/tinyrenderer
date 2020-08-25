@@ -1,16 +1,12 @@
-#include <cmath>
 #include <limits>
-#include <cstdlib>
 #include "our_gl.h"
 
-mat44 ModelView;
-mat44 Viewport;
-mat44 Projection;
-
-IShader::~IShader() {}
+mat<4,4> ModelView;
+mat<4,4> Viewport;
+mat<4,4> Projection;
 
 void viewport(const int x, const int y, const int w, const int h) {
-    Viewport = mat44::identity();
+    Viewport = mat<4,4>::identity();
     Viewport[0][3] = x+w/2.;
     Viewport[1][3] = y+h/2.;
     Viewport[2][3] = 1.;
@@ -20,7 +16,7 @@ void viewport(const int x, const int y, const int w, const int h) {
 }
 
 void projection(const double coeff) {
-    Projection = mat44::identity();
+    Projection = mat<4,4>::identity();
     Projection[3][2] = coeff;
 }
 
@@ -28,8 +24,8 @@ void lookat(const vec3 eye, const vec3 center, const vec3 up) {
     vec3 z = (eye-center).normalize();
     vec3 x = cross(up,z).normalize();
     vec3 y = cross(z,x).normalize();
-    mat44 Minv = mat44::identity();
-    mat44 Tr   = mat44::identity();
+    mat<4,4> Minv = mat<4,4>::identity();
+    mat<4,4> Tr   = mat<4,4>::identity();
     for (int i=0; i<3; i++) {
         Minv[0][i] = x[i];
         Minv[1][i] = y[i];
@@ -40,16 +36,9 @@ void lookat(const vec3 eye, const vec3 center, const vec3 up) {
 }
 
 vec3 barycentric(const vec2 A, const vec2 B, const vec2 C, const vec2 P) {
-    vec3 s[2];
-    for (int i=2; i--; ) {
-        s[i][0] = C[i]-A[i];
-        s[i][1] = B[i]-A[i];
-        s[i][2] = A[i]-P[i];
-    }
-    vec3 u = cross(s[0], s[1]);
-    if (std::abs(u[2])>1e-2) // dont forget that u[2] is integer. If it is zero then triangle ABC is degenerate
-        return vec3(1.-(u.x+u.y)/u.z, u.y/u.z, u.x/u.z);
-    return vec3(-1,1,1); // in this case generate negative coordinates, it will be thrown away by the rasterizator
+    mat<3,3> ABC = {{embed<3>(A), embed<3>(B), embed<3>(C)}};
+    if (ABC.det()<1e-3) return vec3(-1,1,1); // for a degenerate triangle generate negative coordinates, it will be thrown away by the rasterizator
+    return ABC.invert_transpose() * embed<3>(P);
 }
 
 void triangle(const mat<4,3> &clipc, IShader &shader, TGAImage &image, std::vector<double> &zbuffer) {

@@ -69,11 +69,10 @@ vec3 Model::vert(const int iface, const int nthvert) const {
 
 void Model::load_texture(std::string filename, const std::string suffix, TGAImage &img) {
     size_t dot = filename.find_last_of(".");
-    if (dot!=std::string::npos) {
-        std::string texfile = filename.substr(0,dot) + suffix;
-        std::cerr << "texture file " << texfile << " loading " << (img.read_tga_file(texfile.c_str()) ? "ok" : "failed") << std::endl;
-        img.flip_vertically();
-    }
+    if (dot==std::string::npos) return;
+    std::string texfile = filename.substr(0,dot) + suffix;
+    std::cerr << "texture file " << texfile << " loading " << (img.read_tga_file(texfile.c_str()) ? "ok" : "failed") << std::endl;
+    img.flip_vertically();
 }
 
 TGAColor Model::diffuse(const vec2 &uvf) const {
@@ -84,16 +83,16 @@ vec3 Model::normal(const vec2 &uvf) const {
     TGAColor c = normalmap_.get(uvf[0]*normalmap_.get_width(), uvf[1]*normalmap_.get_height());
     vec3 res;
     for (int i=0; i<3; i++)
-        res[2-i] = c[i]/255.f*2.f - 1.f;
+        res[2-i] = c[i]/255.*2 - 1;
     return res;
+}
+
+double Model::specular(const vec2 &uvf) const {
+    return specularmap_.get(uvf[0]*specularmap_.get_width(), uvf[1]*specularmap_.get_height())[0];
 }
 
 vec2 Model::uv(const int iface, const int nthvert) const {
     return uv_[facet_tex_[iface*3+nthvert]];
-}
-
-double Model::specular(const vec2 &uvf) const {
-    return specularmap_.get(uvf[0]*specularmap_.get_width(), uvf[1]*specularmap_.get_height())[0]/1.f;
 }
 
 vec3 Model::normal(const int iface, const int nthvert) const {

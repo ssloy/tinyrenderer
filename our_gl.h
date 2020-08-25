@@ -3,15 +3,11 @@
 #include "tgaimage.h"
 #include "geometry.h"
 
-extern mat44 ModelView;
-extern mat44 Projection;
-
 void viewport(const int x, const int y, const int w, const int h);
 void projection(const double coeff=0); // coeff = -1/c
 void lookat(const vec3 eye, const vec3 center, const vec3 up);
 
 struct IShader {
-    virtual ~IShader();
     virtual vec4 vertex(const int iface, const int nthvert) = 0;
     virtual bool fragment(const vec3 bar, TGAColor &color) = 0;
 };

@@ -1,10 +1,6 @@
-#include <vector>
 #include <limits>
 #include <iostream>
-#include <cmath>
-#include "tgaimage.h"
 #include "model.h"
-#include "geometry.h"
 #include "our_gl.h"
 
 constexpr int width  = 800; // output image size
@@ -15,7 +11,10 @@ const vec3       eye(1,1,3); // camera position
 const vec3    center(0,0,0); // camera direction
 const vec3        up(0,1,0); // camera up vector
 
-struct Shader : public IShader {
+extern mat<4,4> ModelView; // "OpenGL" state matrices
+extern mat<4,4> Projection;
+
+struct Shader : IShader {
     const Model &model;
     vec3 l;               // light direction in normalized device coordinates
     mat<2,3> varying_uv;  // triangle uv coordinates, written by the vertex shader, read by the fragment shader
@@ -68,8 +67,7 @@ int main(int argc, char** argv) {
         return 1;
     }
 
-    std::vector<double> zbuffer(width*height, -std::numeric_limits<double>::max());
-
+    std::vector<double> zbuffer(width*height, -std::numeric_limits<double>::max()); // note that the z-buffer is initialized with minimal possible values
     TGAImage framebuffer(width, height, TGAImage::RGB); // the output image
     lookat(eye, center, up);                            // build the ModelView matrix
     viewport(width/8, height/8, width*3/4, height*3/4); // build the Viewport matrix
