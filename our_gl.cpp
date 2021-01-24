@@ -14,11 +14,11 @@ void projection(const double coeff) { // check https://github.com/ssloy/tinyrend
 }
 
 void lookat(const vec3 eye, const vec3 center, const vec3 up) { // check https://github.com/ssloy/tinyrenderer/wiki/Lesson-5-Moving-the-camera
-    vec3 z = (eye-center).normalize();
+    vec3 z = (center-eye).normalize();
     vec3 x =  cross(up,z).normalize();
     vec3 y =  cross(z, x).normalize();
     mat<4,4> Minv = {{{x.x,x.y,x.z,0},   {y.x,y.y,y.z,0},   {z.x,z.y,z.z,0},   {0,0,0,1}}};
-    mat<4,4> Tr   = {{{1,0,0,-center.x}, {0,1,0,-center.y}, {0,0,1,-center.z}, {0,0,0,1}}};
+    mat<4,4> Tr   = {{{1,0,0,-eye.x}, {0,1,0,-eye.y}, {0,0,1,-eye.z}, {0,0,0,1}}};
     ModelView = Minv*Tr;
 }
 
