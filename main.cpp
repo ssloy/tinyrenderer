@@ -16,21 +16,21 @@ extern mat<4,4> Projection;
 
 struct Shader : IShader {
     const Model &model;
-    vec3 l;               // light direction in normalized device coordinates
+    vec3 l;               // light direction in view coordinates
     mat<2,3> varying_uv;  // triangle uv coordinates, written by the vertex shader, read by the fragment shader
     mat<3,3> varying_nrm; // normal per vertex to be interpolated by FS
-    mat<3,3> ndc_tri;     // triangle in normalized device coordinates
+    mat<3,3> view_tri;     // triangle in view coordinates
 
     Shader(const Model &m) : model(m) {
-        l = proj<3>((Projection*ModelView*embed<4>(light_dir, 0.))).normalize(); // transform the light vector to the normalized device coordinates
+        l = proj<3>((ModelView*embed<4>(light_dir, 0.))).normalize(); // transform the light vector to view coordinates
     }
 
     virtual vec4 vertex(const int iface, const int nthvert) {
         varying_uv.set_col(nthvert, model.uv(iface, nthvert));
-        varying_nrm.set_col(nthvert, proj<3>((Projection*ModelView).invert_transpose()*embed<4>(model.normal(iface, nthvert), 0.)));
-        vec4 gl_Vertex = Projection*ModelView*embed<4>(model.vert(iface, nthvert));
-        ndc_tri.set_col(nthvert, proj<3>(gl_Vertex/gl_Vertex[3]));
-        return gl_Vertex;
+        varying_nrm.set_col(nthvert, proj<3>((ModelView).invert_transpose()*embed<4>(model.normal(iface, nthvert), 0.)));
+        vec4 gl_Vertex = ModelView*embed<4>(model.vert(iface, nthvert));
+        view_tri.set_col(nthvert, proj<3>(gl_Vertex));
+        return Projection*gl_Vertex;
     }
 
     virtual bool fragment(const vec3 bar, TGAColor &color) {
@@ -39,16 +39,15 @@ struct Shader : IShader {
 
         // for the math refer to the tangent space normal mapping lecture
         // https://github.com/ssloy/tinyrenderer/wiki/Lesson-6bis-tangent-space-normal-mapping
-        mat<3,3> AI = mat<3,3>{ {ndc_tri.col(1) - ndc_tri.col(0), ndc_tri.col(2) - ndc_tri.col(0), bn} }.invert();
+        mat<3,3> AI = mat<3,3>{ {view_tri.col(1) - view_tri.col(0), view_tri.col(2) - view_tri.col(0), bn} }.invert();
         vec3 i = AI * vec3(varying_uv[0][1] - varying_uv[0][0], varying_uv[0][2] - varying_uv[0][0], 0);
         vec3 j = AI * vec3(varying_uv[1][1] - varying_uv[1][0], varying_uv[1][2] - varying_uv[1][0], 0);
         mat<3,3> B = mat<3,3>{ {i.normalize(), j.normalize(), bn} }.transpose();
 
         vec3 n = (B * model.normal(uv)).normalize(); // transform the normal from the texture to the tangent space
-
         double diff = std::max(0., n*l); // diffuse light intensity
         vec3 r = (n*(n*l)*2 - l).normalize(); // reflected light direction, specular mapping is described here: https://github.com/ssloy/tinyrenderer/wiki/Lesson-6-Shaders-for-the-software-renderer
-        double spec = std::pow(std::max(r.z, 0.), 5+model.specular(uv)); // specular intensity, note that the camera lies on the z-axis (in ndc), therefore simple r.z
+        double spec = std::pow(std::max(-r.z, 0.), 5+model.specular(uv)); // specular intensity, note that the camera lies on the z-axis (in view), therefore simple -r.z
 
         TGAColor c = model.diffuse(uv);
         for (int i=0; i<3; i++)
@@ -64,11 +63,11 @@ int main(int argc, char** argv) {
         return 1;
     }
 
-    std::vector<double> zbuffer(width*height, -std::numeric_limits<double>::max()); // note that the z-buffer is initialized with minimal possible values
+    std::vector<double> zbuffer(width*height, std::numeric_limits<double>::max());
     TGAImage framebuffer(width, height, TGAImage::RGB); // the output image
     lookat(eye, center, up);                            // build the ModelView matrix
     viewport(width/8, height/8, width*3/4, height*3/4); // build the Viewport matrix
-    projection(-1.f/(eye-center).norm());               // build the Projection matrix
+    projection((eye-center).norm());               // build the Projection matrix
 
     for (int m=1; m<argc; m++) { // iterate through all input objects
         Model model(argv[m]);
