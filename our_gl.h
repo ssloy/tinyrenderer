@@ -8,7 +8,9 @@ void projection(const double coeff=0); // coeff = -1/c
 void lookat(const vec3 eye, const vec3 center, const vec3 up);
 
 struct IShader {
-    virtual vec4 vertex(const int iface, const int nthvert) = 0;
+    static TGAColor sample2D(const TGAImage &img, vec2 &uvf) {
+        return img.get(uvf[0] * img.get_width(), uvf[1] * img.get_height());
+    }
     virtual bool fragment(const vec3 bar, TGAColor &color) = 0;
 };
 

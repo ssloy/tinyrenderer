@@ -9,16 +9,16 @@ void viewport(const int x, const int y, const int w, const int h) {
     Viewport = {{{w/2., 0, 0, x+w/2.}, {0, h/2., 0, y+h/2.}, {0,0,1,0}, {0,0,0,1}}};
 }
 
-void projection(const double coeff) { // check https://github.com/ssloy/tinyrenderer/wiki/Lesson-4-Perspective-projection
-    Projection = {{{1,0,0,0}, {0,1,0,0}, {0,0,1,0}, {0,0,coeff,1}}};
+void projection(const double f) { // check https://en.wikipedia.org/wiki/Camera_matrix
+    Projection = {{{1,0,0,0}, {0,-1,0,0}, {0,0,1,0}, {0,0,-1/f,0}}}; // P[1,1] = -1; does vertical flip
 }
 
 void lookat(const vec3 eye, const vec3 center, const vec3 up) { // check https://github.com/ssloy/tinyrenderer/wiki/Lesson-5-Moving-the-camera
-    vec3 z = (eye-center).normalize();
+    vec3 z = (center-eye).normalize();
     vec3 x =  cross(up,z).normalize();
     vec3 y =  cross(z, x).normalize();
     mat<4,4> Minv = {{{x.x,x.y,x.z,0},   {y.x,y.y,y.z,0},   {z.x,z.y,z.z,0},   {0,0,0,1}}};
-    mat<4,4> Tr   = {{{1,0,0,-center.x}, {0,1,0,-center.y}, {0,0,1,-center.z}, {0,0,0,1}}};
+    mat<4,4> Tr   = {{{1,0,0,-eye.x}, {0,1,0,-eye.y}, {0,0,1,-eye.z}, {0,0,0,1}}};
     ModelView = Minv*Tr;
 }
 
@@ -47,7 +47,7 @@ void triangle(const vec4 clip_verts[3], IShader &shader, TGAImage &image, std::v
             vec3 bc_clip    = vec3(bc_screen.x/pts[0][3], bc_screen.y/pts[1][3], bc_screen.z/pts[2][3]);
             bc_clip = bc_clip/(bc_clip.x+bc_clip.y+bc_clip.z); // check https://github.com/ssloy/tinyrenderer/wiki/Technical-difficulties-linear-interpolation-with-perspective-deformations
             double frag_depth = vec3(clip_verts[0][2], clip_verts[1][2], clip_verts[2][2])*bc_clip;
-            if (bc_screen.x<0 || bc_screen.y<0 || bc_screen.z<0 || zbuffer[x+y*image.get_width()]>frag_depth) continue;
+            if (bc_screen.x<0 || bc_screen.y<0 || bc_screen.z<0 || frag_depth > zbuffer[x+y*image.get_width()]) continue;
             TGAColor color;
             bool discard = shader.fragment(bc_clip, color);
             if (discard) continue;

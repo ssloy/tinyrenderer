@@ -75,20 +75,12 @@ void Model::load_texture(std::string filename, const std::string suffix, TGAImag
     img.flip_vertically();
 }
 
-TGAColor Model::diffuse(const vec2 &uvf) const {
-    return diffusemap_.get(uvf[0]*diffusemap_.get_width(), uvf[1]*diffusemap_.get_height());
-}
-
 vec3 Model::normal(const vec2 &uvf) const {
     TGAColor c = normalmap_.get(uvf[0]*normalmap_.get_width(), uvf[1]*normalmap_.get_height());
     vec3 res;
     for (int i=0; i<3; i++)
         res[2-i] = c[i]/255.*2 - 1;
     return res;
-}
-
-double Model::specular(const vec2 &uvf) const {
-    return specularmap_.get(uvf[0]*specularmap_.get_width(), uvf[1]*specularmap_.get_height())[0];
 }
 
 vec2 Model::uv(const int iface, const int nthvert) const {
