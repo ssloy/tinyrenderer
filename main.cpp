@@ -67,14 +67,14 @@ int main(int argc, char** argv) {
     TGAImage framebuffer(width, height, TGAImage::RGB); // the output image
     lookat(eye, center, up);                            // build the ModelView matrix
     viewport(width/8, height/8, width*3/4, height*3/4); // build the Viewport matrix
-    projection((eye-center).norm());               // build the Projection matrix
+    projection((eye-center).norm());                    // build the Projection matrix
 
     for (int m=1; m<argc; m++) { // iterate through all input objects
         Model model(argv[m]);
         Shader shader(model);
         for (int i=0; i<model.nfaces(); i++) { // for every triangle
             vec4 clip_vert[3]; // triangle coordinates (clip coordinates), written by VS, read by FS
-            for (int j=0; j<3; j++)
+            for (int j : {0,1,2})
                 shader.vertex(i, j, clip_vert[j]); // call the vertex shader for each triangle vertex
             triangle(clip_vert, shader, framebuffer, zbuffer); // actual rasterization routine call
         }

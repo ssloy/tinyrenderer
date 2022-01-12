@@ -6,16 +6,15 @@
 #include "tgaimage.h"
 
 class Model {
-private:
-    std::vector<vec3> verts_;     // array of vertices
-    std::vector<vec2> uv_;        // array of tex coords
-    std::vector<vec3> norms_;     // array of normal vectors
-    std::vector<int> facet_vrt_; 
-    std::vector<int> facet_tex_;  // indices in the above arrays per triangle
-    std::vector<int> facet_nrm_;
-    TGAImage diffusemap_;         // diffuse color texture
-    TGAImage normalmap_;          // normal map texture
-    TGAImage specularmap_;        // specular map texture
+    std::vector<vec3> verts_{};     // array of vertices
+    std::vector<vec2> uv_{};        // array of tex coords
+    std::vector<vec3> norms_{};     // array of normal vectors
+    std::vector<int> facet_vrt_{};
+    std::vector<int> facet_tex_{};  // indices in the above arrays per triangle
+    std::vector<int> facet_nrm_{};
+    TGAImage diffusemap_{};         // diffuse color texture
+    TGAImage normalmap_{};          // normal map texture
+    TGAImage specularmap_{};        // specular map texture
     void load_texture(const std::string filename, const std::string suffix, TGAImage &img);
 public:
     Model(const std::string filename);
@@ -26,7 +25,7 @@ public:
     vec3 vert(const int i) const;
     vec3 vert(const int iface, const int nthvert) const;
     vec2 uv(const int iface, const int nthvert) const;
-    const TGAImage& diffuse() const { return diffusemap_; }
+    const TGAImage& diffuse()  const { return diffusemap_;  }
     const TGAImage& specular() const { return specularmap_; }
 };
 #endif //__MODEL_H__

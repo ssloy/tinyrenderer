@@ -3,9 +3,9 @@
 #include <sstream>
 #include "model.h"
 
-Model::Model(const std::string filename) : verts_(), uv_(), norms_(), facet_vrt_(), facet_tex_(), facet_nrm_(), diffusemap_(), normalmap_(), specularmap_() {
+Model::Model(const std::string filename) {
     std::ifstream in;
-    in.open (filename, std::ifstream::in);
+    in.open(filename, std::ifstream::in);
     if (in.fail()) return;
     std::string line;
     while (!in.eof()) {
@@ -26,7 +26,7 @@ Model::Model(const std::string filename) : verts_(), uv_(), norms_(), facet_vrt_
             iss >> trash >> trash;
             vec2 uv;
             for (int i=0;i<2;i++) iss >> uv[i];
-            uv_.push_back(uv);
+            uv_.push_back({uv.x, 1-uv.y});
         }  else if (!line.compare(0, 2, "f ")) {
             int f,t,n;
             iss >> trash;
@@ -72,15 +72,11 @@ void Model::load_texture(std::string filename, const std::string suffix, TGAImag
     if (dot==std::string::npos) return;
     std::string texfile = filename.substr(0,dot) + suffix;
     std::cerr << "texture file " << texfile << " loading " << (img.read_tga_file(texfile.c_str()) ? "ok" : "failed") << std::endl;
-    img.flip_vertically();
 }
 
 vec3 Model::normal(const vec2 &uvf) const {
     TGAColor c = normalmap_.get(uvf[0]*normalmap_.get_width(), uvf[1]*normalmap_.get_height());
-    vec3 res;
-    for (int i=0; i<3; i++)
-        res[2-i] = c[i]/255.*2 - 1;
-    return res;
+    return vec3{(double)c[2],(double)c[1],(double)c[0]}*2./255. - vec3{1,1,1};
 }
 
 vec2 Model::uv(const int iface, const int nthvert) const {

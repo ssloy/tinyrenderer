@@ -9,7 +9,7 @@ template<int n> struct vec {
     vec() = default;
     double & operator[](const int i)       { assert(i>=0 && i<n); return data[i]; }
     double   operator[](const int i) const { assert(i>=0 && i<n); return data[i]; }
-    double norm2() const { return (*this)*(*this) ; }
+    double norm2() const { return *this * *this; }
     double norm()  const { return std::sqrt(norm2()); }
     double data[n] = {0};
 };
@@ -75,7 +75,7 @@ template<> struct vec<2> {
     vec(double X, double Y) : x(X), y(Y) {}
     double& operator[](const int i)       { assert(i>=0 && i<2); return i==0 ? x : y; }
     double  operator[](const int i) const { assert(i>=0 && i<2); return i==0 ? x : y; }
-    double norm2() const { return (*this)*(*this) ; }
+    double norm2() const { return *this * *this; }
     double norm()  const { return std::sqrt(norm2()); }
     vec & normalize() { *this = (*this)/norm(); return *this; }
 
@@ -89,7 +89,7 @@ template<> struct vec<3> {
     vec(double X, double Y, double Z) : x(X), y(Y), z(Z) {}
     double& operator[](const int i)       { assert(i>=0 && i<3); return i==0 ? x : (1==i ? y : z); }
     double  operator[](const int i) const { assert(i>=0 && i<3); return i==0 ? x : (1==i ? y : z); }
-    double norm2() const { return (*this)*(*this) ; }
+    double norm2() const { return *this * *this; }
     double norm()  const { return std::sqrt(norm2()); }
     vec & normalize() { *this = (*this)/norm(); return *this; }
 
