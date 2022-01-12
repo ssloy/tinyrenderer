@@ -9,7 +9,7 @@ cd tinyrenderer &&
 mkdir build &&
 cd build &&
 cmake .. &&
-make &&
+cmake --build . -j &&
 ./tinyrenderer ../obj/diablo3_pose/diablo3_pose.obj ../obj/floor.obj
 ```
 The rendered image is saved to `framebuffer.tga`.
@@ -46,7 +46,6 @@ const TGAColor red   = TGAColor(255, 0,   0,   255);
 int main(int argc, char** argv) {
         TGAImage image(100, 100, TGAImage::RGB);
         image.set(52, 41, red);
-        image.flip_vertically(); // i want to have the origin at the left bottom corner of the image
         image.write_tga_file("output.tga");`
         return 0;
 }
