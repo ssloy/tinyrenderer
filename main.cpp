@@ -1,5 +1,4 @@
 #include <limits>
-#include <iostream>
 #include "model.h"
 #include "our_gl.h"
 
@@ -50,7 +49,7 @@ struct Shader : IShader {
         double spec = std::pow(std::max(-r.z, 0.), 5+sample2D(model.specular(), uv)[0]); // specular intensity, note that the camera lies on the z-axis (in view), therefore simple -r.z
 
         TGAColor c = sample2D(model.diffuse(), uv);
-        for (int i=0; i<3; i++)
+        for (int i : {0,1,2})
             gl_FragColor[i] = std::min<int>(10 + c[i]*(diff + spec), 255); // (a bit of ambient light, diff + spec), clamp the result
 
         return false; // the pixel is not discarded
@@ -62,12 +61,11 @@ int main(int argc, char** argv) {
         std::cerr << "Usage: " << argv[0] << " obj/model.obj" << std::endl;
         return 1;
     }
-
-    std::vector<double> zbuffer(width*height, std::numeric_limits<double>::max());
     TGAImage framebuffer(width, height, TGAImage::RGB); // the output image
     lookat(eye, center, up);                            // build the ModelView matrix
     viewport(width/8, height/8, width*3/4, height*3/4); // build the Viewport matrix
     projection((eye-center).norm());                    // build the Projection matrix
+    std::vector<double> zbuffer(width*height, std::numeric_limits<double>::max());
 
     for (int m=1; m<argc; m++) { // iterate through all input objects
         Model model(argv[m]);

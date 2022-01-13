@@ -1,6 +1,4 @@
-#ifndef __GEOMETRY_H__
-#define __GEOMETRY_H__
-
+#pragma once
 #include <cmath>
 #include <cassert>
 #include <iostream>
@@ -62,19 +60,16 @@ template<int n1,int n2> vec<n1> proj(const vec<n2> &v) {
     return ret;
 }
 
-
 template<int n> std::ostream& operator<<(std::ostream& out, const vec<n>& v) {
     for (int i=0; i<n; i++) out << v[i] << " ";
     return out;
 }
 
-/////////////////////////////////////////////////////////////////////////////////
-
 template<> struct vec<2> {
-    vec() =  default;
-    vec(double X, double Y) : x(X), y(Y) {}
-    double& operator[](const int i)       { assert(i>=0 && i<2); return i==0 ? x : y; }
-    double  operator[](const int i) const { assert(i>=0 && i<2); return i==0 ? x : y; }
+    vec() = default;
+    vec(double x, double y) : x(x), y(y) {}
+    double& operator[](const int i)       { assert(i>=0 && i<2); return i ? y : x; }
+    double  operator[](const int i) const { assert(i>=0 && i<2); return i ? y : x; }
     double norm2() const { return *this * *this; }
     double norm()  const { return std::sqrt(norm2()); }
     vec & normalize() { *this = (*this)/norm(); return *this; }
@@ -82,13 +77,11 @@ template<> struct vec<2> {
     double x{}, y{};
 };
 
-/////////////////////////////////////////////////////////////////////////////////
-
 template<> struct vec<3> {
     vec() = default;
-    vec(double X, double Y, double Z) : x(X), y(Y), z(Z) {}
-    double& operator[](const int i)       { assert(i>=0 && i<3); return i==0 ? x : (1==i ? y : z); }
-    double  operator[](const int i) const { assert(i>=0 && i<3); return i==0 ? x : (1==i ? y : z); }
+    vec(double x, double y, double z) : x(x), y(y), z(z) {}
+    double& operator[](const int i)       { assert(i>=0 && i<3); return i ? (1==i ? y : z) : x; }
+    double  operator[](const int i) const { assert(i>=0 && i<3); return i ? (1==i ? y : z) : x; }
     double norm2() const { return *this * *this; }
     double norm()  const { return std::sqrt(norm2()); }
     vec & normalize() { *this = (*this)/norm(); return *this; }
@@ -96,14 +89,16 @@ template<> struct vec<3> {
     double x{}, y{}, z{};
 };
 
-/////////////////////////////////////////////////////////////////////////////////
+typedef vec<2> vec2;
+typedef vec<3> vec3;
+typedef vec<4> vec4;
+vec3 cross(const vec3 &v1, const vec3 &v2);
 
 template<int n> struct dt;
 
 template<int nrows,int ncols> struct mat {
     vec<ncols> rows[nrows] = {{}};
 
-    mat() = default;
           vec<ncols>& operator[] (const int idx)       { assert(idx>=0 && idx<nrows); return rows[idx]; }
     const vec<ncols>& operator[] (const int idx) const { assert(idx>=0 && idx<nrows); return rows[idx]; }
 
@@ -164,8 +159,6 @@ template<int nrows,int ncols> struct mat {
     }
 };
 
-/////////////////////////////////////////////////////////////////////////////////
-
 template<int nrows,int ncols> vec<nrows> operator*(const mat<nrows,ncols>& lhs, const vec<ncols>& rhs) {
     vec<nrows> ret;
     for (int i=nrows; i--; ret[i]=lhs[i]*rhs);
@@ -210,8 +203,6 @@ template<int nrows,int ncols> std::ostream& operator<<(std::ostream& out, const 
     return out;
 }
 
-/////////////////////////////////////////////////////////////////////////////////
-
 template<int n> struct dt {
     static double det(const mat<n,n>& src) {
         double ret = 0;
@@ -225,13 +216,4 @@ template<> struct dt<1> {
         return src[0][0];
     }
 };
-
-/////////////////////////////////////////////////////////////////////////////////
-
-typedef vec<2> vec2;
-typedef vec<3> vec3;
-typedef vec<4> vec4;
-vec3 cross(const vec3 &v1, const vec3 &v2);
-
-#endif //__GEOMETRY_H__
 

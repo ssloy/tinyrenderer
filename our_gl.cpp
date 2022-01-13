@@ -34,7 +34,7 @@ void triangle(const vec4 clip_verts[3], IShader &shader, TGAImage &image, std::v
 
     vec2 bboxmin( std::numeric_limits<double>::max(),  std::numeric_limits<double>::max());
     vec2 bboxmax(-std::numeric_limits<double>::max(), -std::numeric_limits<double>::max());
-    vec2 clamp(image.get_width()-1, image.get_height()-1);
+    vec2 clamp(image.width()-1, image.height()-1);
     for (int i=0; i<3; i++)
         for (int j=0; j<2; j++) {
             bboxmin[j] = std::max(0.,       std::min(bboxmin[j], pts2[i][j]));
@@ -47,10 +47,10 @@ void triangle(const vec4 clip_verts[3], IShader &shader, TGAImage &image, std::v
             vec3 bc_clip   = vec3(bc_screen.x/pts[0][3], bc_screen.y/pts[1][3], bc_screen.z/pts[2][3]);
             bc_clip = bc_clip/(bc_clip.x+bc_clip.y+bc_clip.z); // check https://github.com/ssloy/tinyrenderer/wiki/Technical-difficulties-linear-interpolation-with-perspective-deformations
             double frag_depth = vec3(clip_verts[0][2], clip_verts[1][2], clip_verts[2][2])*bc_clip;
-            if (bc_screen.x<0 || bc_screen.y<0 || bc_screen.z<0 || frag_depth > zbuffer[x+y*image.get_width()]) continue;
+            if (bc_screen.x<0 || bc_screen.y<0 || bc_screen.z<0 || frag_depth > zbuffer[x+y*image.width()]) continue;
             TGAColor color;
             if (shader.fragment(bc_clip, color)) continue; // fragment shader can discard current fragment
-            zbuffer[x+y*image.get_width()] = frag_depth;
+            zbuffer[x+y*image.width()] = frag_depth;
             image.set(x, y, color);
         }
     }
