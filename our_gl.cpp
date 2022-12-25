@@ -24,7 +24,7 @@ void lookat(const vec3 eye, const vec3 center, const vec3 up) { // check https:/
 
 vec3 barycentric(const vec2 tri[3], const vec2 P) {
     mat<3,3> ABC = {{embed<3>(tri[0]), embed<3>(tri[1]), embed<3>(tri[2])}};
-    if (ABC.det()<1e-3) return vec3(-1,1,1); // for a degenerate triangle generate negative coordinates, it will be thrown away by the rasterizator
+    if (ABC.det()<1e-3) return {-1,1,1}; // for a degenerate triangle generate negative coordinates, it will be thrown away by the rasterizator
     return ABC.invert_transpose() * embed<3>(P);
 }
 
@@ -32,9 +32,9 @@ void triangle(const vec4 clip_verts[3], IShader &shader, TGAImage &image, std::v
     vec4 pts[3]  = { Viewport*clip_verts[0],    Viewport*clip_verts[1],    Viewport*clip_verts[2]    };  // triangle screen coordinates before persp. division
     vec2 pts2[3] = { proj<2>(pts[0]/pts[0][3]), proj<2>(pts[1]/pts[1][3]), proj<2>(pts[2]/pts[2][3]) };  // triangle screen coordinates after  perps. division
 
-    vec2 bboxmin( std::numeric_limits<double>::max(),  std::numeric_limits<double>::max());
-    vec2 bboxmax(-std::numeric_limits<double>::max(), -std::numeric_limits<double>::max());
-    vec2 clamp(image.width()-1, image.height()-1);
+    vec2 bboxmin{ std::numeric_limits<double>::max(),  std::numeric_limits<double>::max()};
+    vec2 bboxmax{-std::numeric_limits<double>::max(), -std::numeric_limits<double>::max()};
+    vec2 clamp{image.width()-1, image.height()-1};
     for (int i=0; i<3; i++)
         for (int j=0; j<2; j++) {
             bboxmin[j] = std::max(0.,       std::min(bboxmin[j], pts2[i][j]));
@@ -43,10 +43,10 @@ void triangle(const vec4 clip_verts[3], IShader &shader, TGAImage &image, std::v
 #pragma omp parallel for
     for (int x=(int)bboxmin.x; x<=(int)bboxmax.x; x++) {
         for (int y=(int)bboxmin.y; y<=(int)bboxmax.y; y++) {
-            vec3 bc_screen = barycentric(pts2, vec2(x, y));
-            vec3 bc_clip   = vec3(bc_screen.x/pts[0][3], bc_screen.y/pts[1][3], bc_screen.z/pts[2][3]);
+            vec3 bc_screen = barycentric(pts2, {x, y});
+            vec3 bc_clip   = {bc_screen.x/pts[0][3], bc_screen.y/pts[1][3], bc_screen.z/pts[2][3]};
             bc_clip = bc_clip/(bc_clip.x+bc_clip.y+bc_clip.z); // check https://github.com/ssloy/tinyrenderer/wiki/Technical-difficulties-linear-interpolation-with-perspective-deformations
-            double frag_depth = vec3(clip_verts[0][2], clip_verts[1][2], clip_verts[2][2])*bc_clip;
+            double frag_depth = vec3{clip_verts[0][2], clip_verts[1][2], clip_verts[2][2]}*bc_clip;
             if (bc_screen.x<0 || bc_screen.y<0 || bc_screen.z<0 || frag_depth > zbuffer[x+y*image.width()]) continue;
             TGAColor color;
             if (shader.fragment(bc_clip, color)) continue; // fragment shader can discard current fragment

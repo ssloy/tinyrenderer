@@ -5,10 +5,10 @@
 constexpr int width  = 800; // output image size
 constexpr int height = 800;
 
-const vec3 light_dir(1,1,1); // light source
-const vec3       eye(1,1,3); // camera position
-const vec3    center(0,0,0); // camera direction
-const vec3        up(0,1,0); // camera up vector
+const vec3 light_dir{1,1,1}; // light source
+const vec3       eye{1,1,3}; // camera position
+const vec3    center{0,0,0}; // camera direction
+const vec3        up{0,1,0}; // camera up vector
 
 extern mat<4,4> ModelView; // "OpenGL" state matrices
 extern mat<4,4> Projection;
@@ -39,8 +39,8 @@ struct Shader : IShader {
         // for the math refer to the tangent space normal mapping lecture
         // https://github.com/ssloy/tinyrenderer/wiki/Lesson-6bis-tangent-space-normal-mapping
         mat<3,3> AI = mat<3,3>{ {view_tri.col(1) - view_tri.col(0), view_tri.col(2) - view_tri.col(0), bn} }.invert();
-        vec3 i = AI * vec3(varying_uv[0][1] - varying_uv[0][0], varying_uv[0][2] - varying_uv[0][0], 0);
-        vec3 j = AI * vec3(varying_uv[1][1] - varying_uv[1][0], varying_uv[1][2] - varying_uv[1][0], 0);
+        vec3 i = AI * vec3{varying_uv[0][1] - varying_uv[0][0], varying_uv[0][2] - varying_uv[0][0], 0};
+        vec3 j = AI * vec3{varying_uv[1][1] - varying_uv[1][0], varying_uv[1][2] - varying_uv[1][0], 0};
         mat<3,3> B = mat<3,3>{ {i.normalize(), j.normalize(), bn} }.transpose();
 
         vec3 n = (B * model.normal(uv)).normalize(); // transform the normal from the texture to the tangent space

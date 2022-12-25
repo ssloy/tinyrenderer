@@ -4,7 +4,6 @@
 #include <iostream>
 
 template<int n> struct vec {
-    vec() = default;
     double & operator[](const int i)       { assert(i>=0 && i<n); return data[i]; }
     double   operator[](const int i) const { assert(i>=0 && i<n); return data[i]; }
     double norm2() const { return *this * *this; }
@@ -66,8 +65,6 @@ template<int n> std::ostream& operator<<(std::ostream& out, const vec<n>& v) {
 }
 
 template<> struct vec<2> {
-    vec() = default;
-    vec(double x, double y) : x(x), y(y) {}
     double& operator[](const int i)       { assert(i>=0 && i<2); return i ? y : x; }
     double  operator[](const int i) const { assert(i>=0 && i<2); return i ? y : x; }
     double norm2() const { return *this * *this; }
@@ -78,8 +75,6 @@ template<> struct vec<2> {
 };
 
 template<> struct vec<3> {
-    vec() = default;
-    vec(double x, double y, double z) : x(x), y(y), z(z) {}
     double& operator[](const int i)       { assert(i>=0 && i<3); return i ? (1==i ? y : z) : x; }
     double  operator[](const int i) const { assert(i>=0 && i<3); return i ? (1==i ? y : z) : x; }
     double norm2() const { return *this * *this; }
