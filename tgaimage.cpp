@@ -6,16 +6,14 @@ TGAImage::TGAImage(const int w, const int h, const int bpp) : w(w), h(h), bpp(bp
 
 bool TGAImage::read_tga_file(const std::string filename) {
     std::ifstream in;
-    in.open (filename, std::ios::binary);
+    in.open(filename, std::ios::binary);
     if (!in.is_open()) {
         std::cerr << "can't open file " << filename << "\n";
-        in.close();
         return false;
     }
     TGAHeader header;
     in.read(reinterpret_cast<char *>(&header), sizeof(header));
     if (!in.good()) {
-        in.close();
         std::cerr << "an error occured while reading the header\n";
         return false;
     }
@@ -23,7 +21,6 @@ bool TGAImage::read_tga_file(const std::string filename) {
     h   = header.height;
     bpp = header.bitsperpixel>>3;
     if (w<=0 || h<=0 || (bpp!=GRAYSCALE && bpp!=RGB && bpp!=RGBA)) {
-        in.close();
         std::cerr << "bad bpp (or width/height) value\n";
         return false;
     }
@@ -32,18 +29,15 @@ bool TGAImage::read_tga_file(const std::string filename) {
     if (3==header.datatypecode || 2==header.datatypecode) {
         in.read(reinterpret_cast<char *>(data.data()), nbytes);
         if (!in.good()) {
-            in.close();
             std::cerr << "an error occured while reading the data\n";
             return false;
         }
     } else if (10==header.datatypecode||11==header.datatypecode) {
         if (!load_rle_data(in)) {
-            in.close();
             std::cerr << "an error occured while reading the data\n";
             return false;
         }
     } else {
-        in.close();
         std::cerr << "unknown file format " << (int)header.datatypecode << "\n";
         return false;
     }
@@ -52,7 +46,6 @@ bool TGAImage::read_tga_file(const std::string filename) {
     if (header.imagedescriptor & 0x10)
         flip_horizontally();
     std::cerr << w << "x" << h << "/" << bpp*8 << "\n";
-    in.close();
     return true;
 }
 
@@ -110,13 +103,12 @@ bool TGAImage::write_tga_file(const std::string filename, const bool vflip, cons
     constexpr std::uint8_t extension_area_ref[4] = {0, 0, 0, 0};
     constexpr std::uint8_t footer[18] = {'T','R','U','E','V','I','S','I','O','N','-','X','F','I','L','E','.','\0'};
     std::ofstream out;
-    out.open (filename, std::ios::binary);
+    out.open(filename, std::ios::binary);
     if (!out.is_open()) {
         std::cerr << "can't open file " << filename << "\n";
-        out.close();
         return false;
     }
-    TGAHeader header;
+    TGAHeader header = {};
     header.bitsperpixel = bpp<<3;
     header.width  = w;
     header.height = h;
@@ -124,7 +116,6 @@ bool TGAImage::write_tga_file(const std::string filename, const bool vflip, cons
     header.imagedescriptor = vflip ? 0x00 : 0x20; // top-left or bottom-left origin
     out.write(reinterpret_cast<const char *>(&header), sizeof(header));
     if (!out.good()) {
-        out.close();
         std::cerr << "can't dump the tga file\n";
         return false;
     }
@@ -132,33 +123,27 @@ bool TGAImage::write_tga_file(const std::string filename, const bool vflip, cons
         out.write(reinterpret_cast<const char *>(data.data()), w*h*bpp);
         if (!out.good()) {
             std::cerr << "can't unload raw data\n";
-            out.close();
             return false;
         }
     } else if (!unload_rle_data(out)) {
-            out.close();
             std::cerr << "can't unload rle data\n";
             return false;
         }
     out.write(reinterpret_cast<const char *>(developer_area_ref), sizeof(developer_area_ref));
     if (!out.good()) {
         std::cerr << "can't dump the tga file\n";
-        out.close();
         return false;
     }
     out.write(reinterpret_cast<const char *>(extension_area_ref), sizeof(extension_area_ref));
     if (!out.good()) {
         std::cerr << "can't dump the tga file\n";
-        out.close();
         return false;
     }
     out.write(reinterpret_cast<const char *>(footer), sizeof(footer));
     if (!out.good()) {
         std::cerr << "can't dump the tga file\n";
-        out.close();
         return false;
     }
-    out.close();
     return true;
 }
 
@@ -205,7 +190,10 @@ bool TGAImage::unload_rle_data(std::ofstream &out) const {
 TGAColor TGAImage::get(const int x, const int y) const {
     if (!data.size() || x<0 || y<0 || x>=w || y>=h)
         return {};
-    return TGAColor(data.data()+(x+y*w)*bpp, bpp);
+    TGAColor ret = {0, 0, 0, 0, bpp};
+    const std::uint8_t *p = data.data()+(x+y*w)*bpp;
+    for (int i=bpp; i--; ret.bgra[i] = p[i]);
+    return ret;
 }
 
 void TGAImage::set(int x, int y, const TGAColor &c) {

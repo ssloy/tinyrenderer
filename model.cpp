@@ -20,7 +20,7 @@ Model::Model(const std::string filename) {
             iss >> trash >> trash;
             vec3 n;
             for (int i=0;i<3;i++) iss >> n[i];
-            norms.push_back(n.normalize());
+            norms.push_back(n.normalized());
         } else if (!line.compare(0, 3, "vt ")) {
             iss >> trash >> trash;
             vec2 uv;
@@ -38,12 +38,10 @@ Model::Model(const std::string filename) {
             }
             if (3!=cnt) {
                 std::cerr << "Error: the obj file is supposed to be triangulated" << std::endl;
-                in.close();
                 return;
             }
         }
     }
-    in.close();
     std::cerr << "# v# " << nverts() << " f# "  << nfaces() << " vt# " << tex_coord.size() << " vn# " << norms.size() << std::endl;
     load_texture(filename, "_diffuse.tga",    diffusemap );
     load_texture(filename, "_nm_tangent.tga", normalmap  );

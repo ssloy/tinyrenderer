@@ -4,11 +4,10 @@
 
 constexpr int width  = 800; // output image size
 constexpr int height = 800;
-
-const vec3 light_dir{1,1,1}; // light source
-const vec3       eye{1,1,3}; // camera position
-const vec3    center{0,0,0}; // camera direction
-const vec3        up{0,1,0}; // camera up vector
+constexpr vec3 light_dir{1,1,1}; // light source
+constexpr vec3       eye{1,1,3}; // camera position
+constexpr vec3    center{0,0,0}; // camera direction
+constexpr vec3        up{0,1,0}; // camera up vector
 
 extern mat<4,4> ModelView; // "OpenGL" state matrices
 extern mat<4,4> Projection;
@@ -21,7 +20,7 @@ struct Shader : IShader {
     mat<3,3> view_tri;    // triangle in view coordinates
 
     Shader(const Model &m) : model(m) {
-        uniform_l = proj<3>((ModelView*embed<4>(light_dir, 0.))).normalize(); // transform the light vector to view coordinates
+        uniform_l = proj<3>((ModelView*embed<4>(light_dir, 0.))).normalized(); // transform the light vector to view coordinates
     }
 
     virtual void vertex(const int iface, const int nthvert, vec4& gl_Position) {
@@ -33,7 +32,7 @@ struct Shader : IShader {
     }
 
     virtual bool fragment(const vec3 bar, TGAColor &gl_FragColor) {
-        vec3 bn = (varying_nrm*bar).normalize(); // per-vertex normal interpolation
+        vec3 bn = (varying_nrm*bar).normalized(); // per-vertex normal interpolation
         vec2 uv = varying_uv*bar; // tex coord interpolation
 
         // for the math refer to the tangent space normal mapping lecture
@@ -41,11 +40,11 @@ struct Shader : IShader {
         mat<3,3> AI = mat<3,3>{ {view_tri.col(1) - view_tri.col(0), view_tri.col(2) - view_tri.col(0), bn} }.invert();
         vec3 i = AI * vec3{varying_uv[0][1] - varying_uv[0][0], varying_uv[0][2] - varying_uv[0][0], 0};
         vec3 j = AI * vec3{varying_uv[1][1] - varying_uv[1][0], varying_uv[1][2] - varying_uv[1][0], 0};
-        mat<3,3> B = mat<3,3>{ {i.normalize(), j.normalize(), bn} }.transpose();
+        mat<3,3> B = mat<3,3>{ {i.normalized(), j.normalized(), bn} }.transpose();
 
-        vec3 n = (B * model.normal(uv)).normalize(); // transform the normal from the texture to the tangent space
+        vec3 n = (B * model.normal(uv)).normalized(); // transform the normal from the texture to the tangent space
         double diff = std::max(0., n*uniform_l); // diffuse light intensity
-        vec3 r = (n*(n*uniform_l)*2 - uniform_l).normalize(); // reflected light direction, specular mapping is described here: https://github.com/ssloy/tinyrenderer/wiki/Lesson-6-Shaders-for-the-software-renderer
+        vec3 r = (n*(n*uniform_l)*2 - uniform_l).normalized(); // reflected light direction, specular mapping is described here: https://github.com/ssloy/tinyrenderer/wiki/Lesson-6-Shaders-for-the-software-renderer
         double spec = std::pow(std::max(-r.z, 0.), 5+sample2D(model.specular(), uv)[0]); // specular intensity, note that the camera lies on the z-axis (in view), therefore simple -r.z
 
         TGAColor c = sample2D(model.diffuse(), uv);
