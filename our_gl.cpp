@@ -1,4 +1,3 @@
-#include <limits>
 #include "our_gl.h"
 
 mat<4,4> ModelView;
@@ -10,7 +9,7 @@ void viewport(const int x, const int y, const int w, const int h) {
 }
 
 void projection(const double f) { // check https://en.wikipedia.org/wiki/Camera_matrix
-    Projection = {{{1,0,0,0}, {0,-1,0,0}, {0,0,1,0}, {0,0,-1/f,0}}}; // P[1,1] = -1; does vertical flip
+    Projection = {{{1,0,0,0}, {0,-1,0,0}, {0,0,1,0}, {0,0,-1/f,0}}};
 }
 
 void lookat(const vec3 eye, const vec3 center, const vec3 up) { // check https://github.com/ssloy/tinyrenderer/wiki/Lesson-5-Moving-the-camera
@@ -32,18 +31,17 @@ void triangle(const vec4 clip_verts[3], IShader &shader, TGAImage &image, std::v
     vec4 pts[3]  = { Viewport*clip_verts[0],    Viewport*clip_verts[1],    Viewport*clip_verts[2]    };  // triangle screen coordinates before persp. division
     vec2 pts2[3] = { proj<2>(pts[0]/pts[0][3]), proj<2>(pts[1]/pts[1][3]), proj<2>(pts[2]/pts[2][3]) };  // triangle screen coordinates after  perps. division
 
-    vec2 bboxmin{ std::numeric_limits<double>::max(),  std::numeric_limits<double>::max()};
-    vec2 bboxmax{-std::numeric_limits<double>::max(), -std::numeric_limits<double>::max()};
-    vec2 clamp{image.width()-1, image.height()-1};
+    int bboxmin[2] = {image.width()-1, image.height()-1};
+    int bboxmax[2] = {0, 0};
     for (int i=0; i<3; i++)
         for (int j=0; j<2; j++) {
-            bboxmin[j] = std::max(0.,       std::min(bboxmin[j], pts2[i][j]));
-            bboxmax[j] = std::min(clamp[j], std::max(bboxmax[j], pts2[i][j]));
+            bboxmin[j] = std::min(bboxmin[j], static_cast<int>(pts2[i][j]));
+            bboxmax[j] = std::max(bboxmax[j], static_cast<int>(pts2[i][j]));
         }
 #pragma omp parallel for
-    for (int x=(int)bboxmin.x; x<=(int)bboxmax.x; x++) {
-        for (int y=(int)bboxmin.y; y<=(int)bboxmax.y; y++) {
-            vec3 bc_screen = barycentric(pts2, {x, y});
+    for (int x=std::max(bboxmin[0], 0); x<=std::min(bboxmax[0], image.width()-1); x++) {
+        for (int y=std::max(bboxmin[1], 0); y<=std::min(bboxmax[1], image.height()-1); y++) {
+            vec3 bc_screen = barycentric(pts2, {static_cast<double>(x), static_cast<double>(y)});
             vec3 bc_clip   = {bc_screen.x/pts[0][3], bc_screen.y/pts[1][3], bc_screen.z/pts[2][3]};
             bc_clip = bc_clip/(bc_clip.x+bc_clip.y+bc_clip.z); // check https://github.com/ssloy/tinyrenderer/wiki/Technical-difficulties-linear-interpolation-with-perspective-deformations
             double frag_depth = vec3{clip_verts[0][2], clip_verts[1][2], clip_verts[2][2]}*bc_clip;

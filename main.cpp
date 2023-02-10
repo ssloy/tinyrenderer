@@ -76,7 +76,7 @@ int main(int argc, char** argv) {
             triangle(clip_vert, shader, framebuffer, zbuffer); // actual rasterization routine call
         }
     }
-    framebuffer.write_tga_file("framebuffer.tga"); // the vertical flip is moved inside the function
+    framebuffer.write_tga_file("framebuffer.tga");
     return 0;
 }
 
