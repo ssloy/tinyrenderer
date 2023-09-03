@@ -9,6 +9,12 @@ project(tinyrenderer LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 20)
 
+option(iwyu "Run include-what-you-use")
+if(iwyu)
+  find_program(IWYU_EXE NAMES include-what-you-use REQUIRED)
+  set(CMAKE_CXX_INCLUDE_WHAT_YOU_USE ${IWYU_EXE})
+endif()
+
 if(CMAKE_CXX_COMPILER_ID MATCHES "Clang|GNU|Intel")
   add_compile_options(-Wall)
 endif()
