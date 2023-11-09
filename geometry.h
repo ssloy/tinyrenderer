@@ -18,31 +18,31 @@ template<int n> double operator*(const vec<n>& lhs, const vec<n>& rhs) {
 }
 
 template<int n> vec<n> operator+(const vec<n>& lhs, const vec<n>& rhs) {
-    vec<n> ret = lhs;
+    auto ret(lhs);
     for (int i=n; i--; ret[i]+=rhs[i]);
     return ret;
 }
 
 template<int n> vec<n> operator-(const vec<n>& lhs, const vec<n>& rhs) {
-    vec<n> ret = lhs;
+    auto ret(lhs);
     for (int i=n; i--; ret[i]-=rhs[i]);
     return ret;
 }
 
 template<int n> vec<n> operator*(const double& rhs, const vec<n> &lhs) {
-    vec<n> ret = lhs;
+    auto ret(lhs);
     for (int i=n; i--; ret[i]*=rhs);
     return ret;
 }
 
 template<int n> vec<n> operator*(const vec<n>& lhs, const double& rhs) {
-    vec<n> ret = lhs;
+    auto ret(lhs);
     for (int i=n; i--; ret[i]*=rhs);
     return ret;
 }
 
 template<int n> vec<n> operator/(const vec<n>& lhs, const double& rhs) {
-    vec<n> ret = lhs;
+    auto ret(lhs);
     for (int i=n; i--; ret[i]/=rhs);
     return ret;
 }
@@ -137,7 +137,7 @@ template<int nrows,int ncols> struct mat {
     }
 
     mat<nrows,ncols> invert_transpose() const {
-        mat<nrows,ncols> ret = adjugate();
+        auto ret(adjugate());
         return ret/(ret[0]*rows[0]);
     }
 
