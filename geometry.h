@@ -66,6 +66,10 @@ template<int n> std::ostream& operator<<(std::ostream& out, const vec<n>& v) {
 
 template<> struct vec<2> {
     double x = 0, y = 0;
+    vec<2>(double _x = 0, double _y = 0){
+        x = _x;
+        y = _y;
+    };
     double& operator[](const int i)       { assert(i>=0 && i<2); return i ? y : x; }
     double  operator[](const int i) const { assert(i>=0 && i<2); return i ? y : x; }
     double norm2() const { return *this * *this; }

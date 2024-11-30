@@ -22,8 +22,21 @@ struct TGAHeader {
 
 struct TGAColor {
     std::uint8_t bgra[4] = {0,0,0,0};
+
+    // Constructor
+    TGAColor(std::uint8_t b = 0, std::uint8_t g = 0, std::uint8_t r = 0, std::uint8_t a = 0, std::uint8_t bpp = 4) {
+        bgra[0] = b;
+        bgra[1] = g;
+        bgra[2] = r;
+        bgra[3] = a;
+        bytespp = bpp;
+    }
+
     std::uint8_t bytespp = 4;
     std::uint8_t& operator[](const int i) { return bgra[i]; }
+	TGAColor operator*(const float x){
+		return TGAColor (bgra[0]*x,bgra[1]*x,bgra[2]*x,bgra[3]);
+	}
 };
 
 struct TGAImage {
