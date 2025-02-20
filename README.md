@@ -3,14 +3,13 @@
 # Check [the wiki](https://github.com/ssloy/tinyrenderer/wiki) for the detailed lessons.
 
 ## compilation
+
 ```sh
-git clone https://github.com/ssloy/tinyrenderer.git &&
-cd tinyrenderer &&
-mkdir build &&
-cd build &&
-cmake .. &&
-cmake --build . -j &&
-./tinyrenderer ../obj/diablo3_pose/diablo3_pose.obj ../obj/floor.obj
+git clone https://github.com/ssloy/tinyrenderer.git
+cd tinyrenderer
+cmake -Bbuild
+cmake --build build -j
+build/tinyrenderer obj/diablo3_pose/diablo3_pose.obj obj/floor.obj
 ```
 The rendered image is saved to `framebuffer.tga`.
 
@@ -62,6 +61,6 @@ output.tga should look something like this:
 
 ![](https://raw.githubusercontent.com/ssloy/tinyrenderer/gh-pages/img/00-home/diablo-glow.png)
 
-![](https://raw.githubusercontent.com/ssloy/tinyrenderer/gh-pages/img/00-home/boggie.png) 
+![](https://raw.githubusercontent.com/ssloy/tinyrenderer/gh-pages/img/00-home/boggie.png)
 
 ![](https://raw.githubusercontent.com/ssloy/tinyrenderer/gh-pages/img/00-home/diablo-ssao.png)
