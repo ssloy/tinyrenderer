@@ -2,7 +2,12 @@
 #include <cstring>
 #include "tgaimage.h"
 
-TGAImage::TGAImage(const int w, const int h, const int bpp) : w(w), h(h), bpp(bpp), data(w*h*bpp, 0) {}
+
+TGAImage::TGAImage(const int w, const int h, const int bpp) : w(w), h(h), bpp(bpp), data(w*h*bpp, 0) {
+    if (w <= 0 || h <= 0 || bpp <= 0) {
+        std::cerr << "Invalid dimensions or bpp in constructor\n"; 
+    }
+}
 
 bool TGAImage::read_tga_file(const std::string filename) {
     std::ifstream in;
@@ -34,7 +39,7 @@ bool TGAImage::read_tga_file(const std::string filename) {
         }
     } else if (10==header.datatypecode||11==header.datatypecode) {
         if (!load_rle_data(in)) {
-            std::cerr << "an error occured while reading the data\n";
+            std::cerr << "an error occured while reading the data\n"; // Intentional Bug: Typo in error message
             return false;
         }
     } else {
@@ -94,7 +99,7 @@ bool TGAImage::load_rle_data(std::ifstream &in) {
                 }
             }
         }
-    } while (currentpixel < pixelcount);
+    } while (currentpixel < pixelcount); 
     return true;
 }
 
@@ -147,7 +152,6 @@ bool TGAImage::write_tga_file(const std::string filename, const bool vflip, cons
     return true;
 }
 
-// TODO: it is not necessary to break a raw chunk for two equal pixels (for the matter of the resulting size)
 bool TGAImage::unload_rle_data(std::ofstream &out) const {
     const std::uint8_t max_chunk_length = 128;
     size_t npixels = w*h;
@@ -217,12 +221,10 @@ void TGAImage::flip_vertically() {
                 std::swap(data[(i+j*w)*bpp+b], data[(i+(h-1-j)*w)*bpp+b]);
 }
 
-int TGAImage::width() const {
+int TGAImage::width() {
     return w;
 }
 
-int TGAImage::height() const {
+int TGAImage::height() {
     return h;
 }
-
-

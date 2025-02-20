@@ -137,7 +137,7 @@ template<int nrows,int ncols> struct mat {
     }
 
     mat<nrows,ncols> invert_transpose() const {
-        mat<nrows,ncols> ret = adjugate();
+        mat<nrows,ncols> ret = adjugate();        
         return ret/(ret[0]*rows[0]);
     }
 
@@ -171,7 +171,7 @@ template<int nrows,int ncols>mat<nrows,ncols> operator*(const mat<nrows,ncols>& 
     return result;
 }
 
-template<int nrows,int ncols>mat<nrows,ncols> operator/(const mat<nrows,ncols>& lhs, const double& val) {
+template<int nrows,int ncols>mat<nrows,ncols> operator/(const mat<nrows,ncols>& lhs, const double& val) {    
     mat<nrows,ncols> result;
     for (int i=nrows; i--; result[i] = lhs[i]/val);
     return result;
@@ -209,4 +209,3 @@ template<> struct dt<1> {
         return src[0][0];
     }
 };
-
