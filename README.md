@@ -5,10 +5,10 @@
 ## compilation
 
 ```sh
-git clone https://github.com/ssloy/tinyrenderer.git
-cd tinyrenderer
-cmake -Bbuild
-cmake --build build -j
+git clone https://github.com/ssloy/tinyrenderer.git &&
+cd tinyrenderer &&
+cmake -Bbuild &&
+cmake --build build -j &&
 build/tinyrenderer obj/diablo3_pose/diablo3_pose.obj obj/floor.obj
 ```
 The rendered image is saved to `framebuffer.tga`.

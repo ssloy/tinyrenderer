@@ -112,42 +112,26 @@ bool TGAImage::write_tga_file(const std::string filename, const bool vflip, cons
     header.bitsperpixel = bpp<<3;
     header.width  = w;
     header.height = h;
-    header.datatypecode = (bpp==GRAYSCALE?(rle?11:3):(rle?10:2));
+    header.datatypecode = (bpp==GRAYSCALE ? (rle?11:3) : (rle?10:2));
     header.imagedescriptor = vflip ? 0x00 : 0x20; // top-left or bottom-left origin
     out.write(reinterpret_cast<const char *>(&header), sizeof(header));
-    if (!out.good()) {
-        std::cerr << "can't dump the tga file\n";
-        return false;
-    }
+    if (!out.good()) goto err;
     if (!rle) {
         out.write(reinterpret_cast<const char *>(data.data()), w*h*bpp);
-        if (!out.good()) {
-            std::cerr << "can't unload raw data\n";
-            return false;
-        }
-    } else if (!unload_rle_data(out)) {
-            std::cerr << "can't unload rle data\n";
-            return false;
-        }
+        if (!out.good()) goto err;
+    } else if (!unload_rle_data(out)) goto err;
     out.write(reinterpret_cast<const char *>(developer_area_ref), sizeof(developer_area_ref));
-    if (!out.good()) {
-        std::cerr << "can't dump the tga file\n";
-        return false;
-    }
+    if (!out.good()) goto err;
     out.write(reinterpret_cast<const char *>(extension_area_ref), sizeof(extension_area_ref));
-    if (!out.good()) {
-        std::cerr << "can't dump the tga file\n";
-        return false;
-    }
+    if (!out.good()) goto err;
     out.write(reinterpret_cast<const char *>(footer), sizeof(footer));
-    if (!out.good()) {
-        std::cerr << "can't dump the tga file\n";
-        return false;
-    }
+    if (!out.good()) goto err;
     return true;
+err:
+    std::cerr << "can't dump the tga file\n";
+    return false;
 }
 
-// TODO: it is not necessary to break a raw chunk for two equal pixels (for the matter of the resulting size)
 bool TGAImage::unload_rle_data(std::ofstream &out) const {
     const std::uint8_t max_chunk_length = 128;
     size_t npixels = w*h;
@@ -173,23 +157,16 @@ bool TGAImage::unload_rle_data(std::ofstream &out) const {
             run_length++;
         }
         curpix += run_length;
-        out.put(raw?run_length-1:run_length+127);
-        if (!out.good()) {
-            std::cerr << "can't dump the tga file\n";
-            return false;
-        }
+        out.put(raw ? run_length-1 : run_length+127);
+        if (!out.good()) return false;
         out.write(reinterpret_cast<const char *>(data.data()+chunkstart), (raw?run_length*bpp:bpp));
-        if (!out.good()) {
-            std::cerr << "can't dump the tga file\n";
-            return false;
-        }
+        if (!out.good()) return false;
     }
     return true;
 }
 
 TGAColor TGAImage::get(const int x, const int y) const {
-    if (!data.size() || x<0 || y<0 || x>=w || y>=h)
-        return {};
+    if (!data.size() || x<0 || y<0 || x>=w || y>=h) return {};
     TGAColor ret = {0, 0, 0, 0, bpp};
     const std::uint8_t *p = data.data()+(x+y*w)*bpp;
     for (int i=bpp; i--; ret.bgra[i] = p[i]);
@@ -202,17 +179,15 @@ void TGAImage::set(int x, int y, const TGAColor &c) {
 }
 
 void TGAImage::flip_horizontally() {
-    int half = w>>1;
-    for (int i=0; i<half; i++)
+    for (int i=0; i<w/2; i++)
         for (int j=0; j<h; j++)
             for (int b=0; b<bpp; b++)
                 std::swap(data[(i+j*w)*bpp+b], data[(w-1-i+j*w)*bpp+b]);
 }
 
 void TGAImage::flip_vertically() {
-    int half = h>>1;
     for (int i=0; i<w; i++)
-        for (int j=0; j<half; j++)
+        for (int j=0; j<h/2; j++)
             for (int b=0; b<bpp; b++)
                 std::swap(data[(i+j*w)*bpp+b], data[(i+(h-1-j)*w)*bpp+b]);
 }
@@ -224,5 +199,4 @@ int TGAImage::width() const {
 int TGAImage::height() const {
     return h;
 }
-
 
