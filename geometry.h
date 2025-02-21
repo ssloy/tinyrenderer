@@ -96,27 +96,18 @@ template<int nrows,int ncols> struct mat {
         return dt<ncols>::det(*this);
     }
 
-    mat<nrows-1,ncols-1> get_minor(const int row, const int col) const {
-        mat<nrows-1,ncols-1> ret;
-        for (int i=nrows-1; i--; )
-            for (int j=ncols-1;j--; ret[i][j]=rows[i<row?i:i+1][j<col?j:j+1]);
-        return ret;
-    }
-
     double cofactor(const int row, const int col) const {
-        return get_minor(row,col).det()*((row+col)%2 ? -1 : 1);
-    }
-
-    mat<nrows,ncols> adjugate() const {
-        mat<nrows,ncols> ret;
-        for (int i=nrows; i--; )
-            for (int j=ncols; j--; ret[i][j]=cofactor(i,j));
-        return ret;
+        mat<nrows-1,ncols-1> submatrix;
+        for (int i=nrows-1; i--; )
+            for (int j=ncols-1;j--; submatrix[i][j]=rows[i+int(i>=row)][j+int(j>=col)]);
+        return submatrix.det() * ((row+col)%2 ? -1 : 1);
     }
 
     mat<nrows,ncols> invert_transpose() const {
-        mat<nrows,ncols> ret = adjugate();
-        return ret/(ret[0]*rows[0]);
+        mat<nrows,ncols> adjugate_transpose; // transpose to ease determinant computation, check the last line
+        for (int i=nrows; i--; )
+            for (int j=ncols; j--; adjugate_transpose[i][j]=cofactor(i,j));
+        return adjugate_transpose/(adjugate_transpose[0]*rows[0]);
     }
 
     mat<nrows,ncols> invert() const {
@@ -180,15 +171,15 @@ template<int nrows,int ncols> std::ostream& operator<<(std::ostream& out, const 
     return out;
 }
 
-template<int n> struct dt {
+template<int n> struct dt { // template metaprogramming to compute the determinant recursively
     static double det(const mat<n,n>& src) {
         double ret = 0;
-        for (int i=n; i--; ret += src[0][i]*src.cofactor(0,i));
+        for (int i=n; i--; ret += src[0][i] * src.cofactor(0,i));
         return ret;
     }
 };
 
-template<> struct dt<1> {
+template<> struct dt<1> {   // template specialization to stop the recursion
     static double det(const mat<1,1>& src) {
         return src[0][0];
     }

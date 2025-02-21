@@ -24,7 +24,7 @@ Model::Model(const std::string filename) {
             iss >> trash >> trash;
             vec2 uv;
             for (int i : {0,1}) iss >> uv[i];
-            tex_coord.push_back({uv.x, 1-uv.y});
+            tex.push_back({uv.x, 1-uv.y});
         }  else if (!line.compare(0, 2, "f ")) {
             int f,t,n, cnt = 0;
             iss >> trash;
@@ -40,7 +40,7 @@ Model::Model(const std::string filename) {
             }
         }
     }
-    std::cerr << "# v# " << nverts() << " f# "  << nfaces() << " vt# " << tex_coord.size() << " vn# " << norms.size() << std::endl;
+    std::cerr << "# v# " << nverts() << " f# "  << nfaces() << " vt# " << tex.size() << " vn# " << norms.size() << std::endl;
     auto load_texture = [&filename](const std::string suffix, TGAImage &img) {
         size_t dot = filename.find_last_of(".");
         if (dot==std::string::npos) return;
@@ -54,7 +54,6 @@ Model::Model(const std::string filename) {
 
 const TGAImage& Model::diffuse()  const { return diffusemap;  }
 const TGAImage& Model::specular() const { return specularmap; }
-
 int Model::nverts() const { return verts.size(); }
 int Model::nfaces() const { return facet_vrt.size()/3; }
 
@@ -72,7 +71,7 @@ vec3 Model::normal(const vec2 &uvf) const {
 }
 
 vec2 Model::uv(const int iface, const int nthvert) const {
-    return tex_coord[facet_tex[iface*3+nthvert]];
+    return tex[facet_tex[iface*3+nthvert]];
 }
 
 vec3 Model::normal(const int iface, const int nthvert) const {

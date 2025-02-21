@@ -28,7 +28,6 @@ struct TGAColor {
 
 struct TGAImage {
     enum Format { GRAYSCALE=1, RGB=3, RGBA=4 };
-
     TGAImage() = default;
     TGAImage(const int w, const int h, const int bpp);
     bool  read_tga_file(const std::string filename);
@@ -42,9 +41,7 @@ struct TGAImage {
 private:
     bool   load_rle_data(std::ifstream &in);
     bool unload_rle_data(std::ofstream &out) const;
-
-    int w = 0;
-    int h = 0;
+    int w = 0, h = 0;
     std::uint8_t bpp = 0;
     std::vector<std::uint8_t> data = {};
 };
