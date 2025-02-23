@@ -52,6 +52,15 @@ int main(int argc, char** argv) {
     Model model(argv[1]);
     TGAImage framebuffer(width, height, TGAImage::RGB);
 
+    for (int i=0; i<model.nfaces(); i++) { // iterate through all triangles
+        auto [ax, ay] = project(model.vert(i, 0));
+        auto [bx, by] = project(model.vert(i, 1));
+        auto [cx, cy] = project(model.vert(i, 2));
+        line(ax, ay, bx, by, framebuffer, red);
+        line(bx, by, cx, cy, framebuffer, red);
+        line(cx, cy, ax, ay, framebuffer, red);
+    }
+
     for (int i=0; i<model.nverts(); i++) { // iterate through all vertices
         vec3 v = model.vert(i);            // get i-th vertex
         auto [x, y] = project(v);          // project it to the screen
