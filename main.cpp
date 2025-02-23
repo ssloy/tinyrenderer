@@ -1,5 +1,11 @@
 #include <cmath>
+#include <tuple>
+#include "geometry.h"
+#include "model.h"
 #include "tgaimage.h"
+
+constexpr int width  = 800;
+constexpr int height = 800;
 
 constexpr TGAColor white   = {255, 255, 255, 255}; // attention, BGRA order
 constexpr TGAColor green   = {  0, 255,   0, 255};
@@ -32,23 +38,25 @@ void line(int ax, int ay, int bx, int by, TGAImage &framebuffer, TGAColor color)
     }
 }
 
+std::tuple<int,int> project(vec3 v) { // First of all, (x,y) is an orthogonal projection of the vector (x,y,z).
+    return { (v.x + 1.) *  width/2,   // Second, since the input models are scaled to have fit in the [-1,1]^3 world coordinates,
+             (v.y + 1.) * height/2 }; // we want to shift the vector (x,y) and then scale it to span the entire screen.
+}
+
 int main(int argc, char** argv) {
-    constexpr int width  = 64;
-    constexpr int height = 64;
+    if (argc != 2) {
+        std::cerr << "Usage: " << argv[0] << " obj/model.obj" << std::endl;
+        return 1;
+    }
+
+    Model model(argv[1]);
     TGAImage framebuffer(width, height, TGAImage::RGB);
 
-    int ax =  7, ay =  3;
-    int bx = 12, by = 37;
-    int cx = 62, cy = 53;
-
-    line(ax, ay, bx, by, framebuffer, blue);
-    line(cx, cy, bx, by, framebuffer, green);
-    line(cx, cy, ax, ay, framebuffer, yellow);
-    line(ax, ay, cx, cy, framebuffer, red);
-
-    framebuffer.set(ax, ay, white);
-    framebuffer.set(bx, by, white);
-    framebuffer.set(cx, cy, white);
+    for (int i=0; i<model.nverts(); i++) { // iterate through all vertices
+        vec3 v = model.vert(i);            // get i-th vertex
+        auto [x, y] = project(v);          // project it to the screen
+        framebuffer.set(x, y, white);
+    }
 
     framebuffer.write_tga_file("framebuffer.tga");
     return 0;
