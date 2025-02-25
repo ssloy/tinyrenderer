@@ -43,9 +43,17 @@ void triangle(int ax, int ay, int bx, int by, int cx, int cy, TGAImage &framebuf
     if (ay>by) { std::swap(ax, bx); std::swap(ay, by); }
     if (ay>cy) { std::swap(ax, cx); std::swap(ay, cy); }
     if (by>cy) { std::swap(bx, cx); std::swap(by, cy); }
-    line(ax, ay, bx, by, framebuffer, green);
-    line(bx, by, cx, cy, framebuffer, green);
-    line(cx, cy, ax, ay, framebuffer, red);
+    int total_height = cy-ay;
+
+    if (ay != by) { // if the bottom half is not degenerate
+        int segment_height = by - ay;
+        for (int y=ay; y<=by; y++) { // sweep the horizontal line from ay to by
+            int x1 = ax + ((cx - ax)*(y - ay)) / total_height;
+            int x2 = ax + ((bx - ax)*(y - ay)) / segment_height;
+            framebuffer.set(x1, y, red);
+            framebuffer.set(x2, y, green);
+        }
+    }
 }
 
 int main(int argc, char** argv) {
