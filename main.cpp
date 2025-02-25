@@ -48,6 +48,7 @@ void triangle(int ax, int ay, int bx, int by, int cx, int cy, TGAImage &framebuf
     int bbmaxx = std::max(std::max(ax, bx), cx);
     int bbmaxy = std::max(std::max(ay, by), cy);
     double total_area = signed_triangle_area(ax, ay, bx, by, cx, cy);
+    if (total_area<1) return; // backface culling + discarding triangles that cover less than a pixel
 
 #pragma omp parallel for
     for (int x=bbminx; x<=bbmaxx; x++) {
