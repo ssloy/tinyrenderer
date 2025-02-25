@@ -54,6 +54,15 @@ void triangle(int ax, int ay, int bx, int by, int cx, int cy, TGAImage &framebuf
                 framebuffer.set(x, y, color);
         }
     }
+    if (by != cy) { // if the upper half is not degenerate
+        int segment_height = cy - by;
+        for (int y=by; y<=cy; y++) { // sweep the horizontal line from by to cy
+            int x1 = ax + ((cx - ax)*(y - ay)) / total_height;
+            int x2 = bx + ((cx - bx)*(y - by)) / segment_height;
+            for (int x=std::min(x1,x2); x<std::max(x1,x2); x++)  // draw a horizontal line
+                framebuffer.set(x, y, color);
+        }
+    }
 }
 
 int main(int argc, char** argv) {
