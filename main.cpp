@@ -50,8 +50,8 @@ void triangle(int ax, int ay, int bx, int by, int cx, int cy, TGAImage &framebuf
         for (int y=ay; y<=by; y++) { // sweep the horizontal line from ay to by
             int x1 = ax + ((cx - ax)*(y - ay)) / total_height;
             int x2 = ax + ((bx - ax)*(y - ay)) / segment_height;
-            framebuffer.set(x1, y, red);
-            framebuffer.set(x2, y, green);
+            for (int x=std::min(x1,x2); x<std::max(x1,x2); x++)  // draw a horizontal line
+                framebuffer.set(x, y, color);
         }
     }
 }
