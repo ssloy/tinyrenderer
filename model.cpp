@@ -1,6 +1,7 @@
 #include <fstream>
 #include <sstream>
 #include "model.h"
+#include <algorithm>
 
 Model::Model(const std::string filename) {
     std::ifstream in;
@@ -30,6 +31,28 @@ Model::Model(const std::string filename) {
         }
     }
     std::cerr << "# v# " << nverts() << " f# "  << nfaces() << std::endl;
+
+    std::vector<int> idx(nfaces());    // permutation, a map from new to old facet indices
+    for (int i = 0 ; i<nfaces() ; i++) // we start with the identity
+        idx[i] = i;
+
+    std::sort(idx.begin(), idx.end(),
+              [&](const int& a, const int& b) { // given two triangles, compare their min z coordinate
+                  float aminz = std::min(vert(a, 0).z,
+                                         std::min(vert(a, 1).z,
+                                                  vert(a, 2).z));
+                  float bminz = std::min(vert(b, 0).z,
+                                         std::min(vert(b, 1).z,
+                                                  vert(b, 2).z));
+                  return aminz < bminz;
+              });
+
+    std::vector<int> facet_vrt2(nfaces()*3); // allocate an array to store permutated facets
+    for (int i=0; i<nfaces(); i++)           // for each (new) facet
+        for (int j=0; j<3; j++)              // copy its three vertices from the old array
+            facet_vrt2[i*3+j] = facet_vrt[idx[i]*3+j];
+
+    facet_vrt = facet_vrt2;                  // store the sorted triangles
 }
 
 int Model::nverts() const { return verts.size(); }
