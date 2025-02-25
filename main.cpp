@@ -39,28 +39,13 @@ void line(int ax, int ay, int bx, int by, TGAImage &framebuffer, TGAColor color)
 }
 
 void triangle(int ax, int ay, int bx, int by, int cx, int cy, TGAImage &framebuffer, TGAColor color) {
-    // sort the vertices, a,b,c in ascending y order (bubblesort yay!)
-    if (ay>by) { std::swap(ax, bx); std::swap(ay, by); }
-    if (ay>cy) { std::swap(ax, cx); std::swap(ay, cy); }
-    if (by>cy) { std::swap(bx, cx); std::swap(by, cy); }
-    int total_height = cy-ay;
-
-    if (ay != by) { // if the bottom half is not degenerate
-        int segment_height = by - ay;
-        for (int y=ay; y<=by; y++) { // sweep the horizontal line from ay to by
-            int x1 = ax + ((cx - ax)*(y - ay)) / total_height;
-            int x2 = ax + ((bx - ax)*(y - ay)) / segment_height;
-            for (int x=std::min(x1,x2); x<std::max(x1,x2); x++)  // draw a horizontal line
-                framebuffer.set(x, y, color);
-        }
-    }
-    if (by != cy) { // if the upper half is not degenerate
-        int segment_height = cy - by;
-        for (int y=by; y<=cy; y++) { // sweep the horizontal line from by to cy
-            int x1 = ax + ((cx - ax)*(y - ay)) / total_height;
-            int x2 = bx + ((cx - bx)*(y - by)) / segment_height;
-            for (int x=std::min(x1,x2); x<std::max(x1,x2); x++)  // draw a horizontal line
-                framebuffer.set(x, y, color);
+    int bbminx = std::min(std::min(ax, bx), cx); // bounding box for the triangle
+    int bbminy = std::min(std::min(ay, by), cy); // defined by its top left and bottom right corners
+    int bbmaxx = std::max(std::max(ax, bx), cx);
+    int bbmaxy = std::max(std::max(ay, by), cy);
+    for (int x=bbminx; x<=bbmaxx; x++) {
+        for (int y=bbminy; y<=bbmaxy; y++) {
+            framebuffer.set(x, y, color);
         }
     }
 }
