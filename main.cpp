@@ -39,9 +39,13 @@ void line(int ax, int ay, int bx, int by, TGAImage &framebuffer, TGAColor color)
 }
 
 void triangle(int ax, int ay, int bx, int by, int cx, int cy, TGAImage &framebuffer, TGAColor color) {
-    line(ax, ay, bx, by, framebuffer, color);
-    line(bx, by, cx, cy, framebuffer, color);
-    line(cx, cy, ax, ay, framebuffer, color);
+    // sort the vertices, a,b,c in ascending y order (bubblesort yay!)
+    if (ay>by) { std::swap(ax, bx); std::swap(ay, by); }
+    if (ay>cy) { std::swap(ax, cx); std::swap(ay, cy); }
+    if (by>cy) { std::swap(bx, cx); std::swap(by, cy); }
+    line(ax, ay, bx, by, framebuffer, green);
+    line(bx, by, cx, cy, framebuffer, green);
+    line(cx, cy, ax, ay, framebuffer, red);
 }
 
 int main(int argc, char** argv) {
