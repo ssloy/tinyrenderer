@@ -12,10 +12,10 @@ double signed_triangle_area(int ax, int ay, int bx, int by, int cx, int cy) {
 }
 
 void triangle(int ax, int ay, int az, int bx, int by, int bz, int cx, int cy, int cz, TGAImage &zbuffer, TGAImage &framebuffer, TGAColor color) {
-    int bbminx = std::min(std::min(ax, bx), cx); // bounding box for the triangle
-    int bbminy = std::min(std::min(ay, by), cy); // defined by its top left and bottom right corners
-    int bbmaxx = std::max(std::max(ax, bx), cx);
-    int bbmaxy = std::max(std::max(ay, by), cy);
+    int bbminx = std::max(0, std::min(std::min(ax, bx), cx)); // bounding box for the triangle clipped by the screen
+    int bbminy = std::max(0, std::min(std::min(ay, by), cy)); // defined by its top left and bottom right corners
+    int bbmaxx = std::min(framebuffer.width() -1, std::max(std::max(ax, bx), cx));
+    int bbmaxy = std::min(framebuffer.height()-1, std::max(std::max(ay, by), cy));
     double total_area = signed_triangle_area(ax, ay, bx, by, cx, cy);
     if (total_area<1) return; // backface culling + discarding triangles that cover less than a pixel
 
@@ -32,6 +32,12 @@ void triangle(int ax, int ay, int az, int bx, int by, int bz, int cx, int cy, in
             framebuffer.set(x, y, color);
         }
     }
+}
+
+vec3 rot(vec3 v) {
+    constexpr double a = M_PI/6;
+    constexpr mat<3,3> Ry = {{{std::cos(a), 0, std::sin(a)}, {0,1,0}, {-std::sin(a), 0, std::cos(a)}}};
+    return Ry*v;
 }
 
 std::tuple<int,int,int> project(vec3 v) { // First of all, (x,y) is an orthogonal projection of the vector (x,y,z).
@@ -51,9 +57,9 @@ int main(int argc, char** argv) {
     TGAImage     zbuffer(width, height, TGAImage::GRAYSCALE);
 
     for (int i=0; i<model.nfaces(); i++) { // iterate through all triangles
-        auto [ax, ay, az] = project(model.vert(i, 0));
-        auto [bx, by, bz] = project(model.vert(i, 1));
-        auto [cx, cy, cz] = project(model.vert(i, 2));
+        auto [ax, ay, az] = project(rot(model.vert(i, 0)));
+        auto [bx, by, bz] = project(rot(model.vert(i, 1)));
+        auto [cx, cy, cz] = project(rot(model.vert(i, 2)));
         TGAColor rnd;
         for (int c=0; c<3; c++) rnd[c] = std::rand()%255;
         triangle(ax, ay, az, bx, by, bz, cx, cy, cz, zbuffer, framebuffer, rnd);
