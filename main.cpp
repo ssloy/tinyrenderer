@@ -1,5 +1,6 @@
 #include <cmath>
 #include <tuple>
+#include <limits>
 #include "geometry.h"
 #include "model.h"
 #include "tgaimage.h"
@@ -11,7 +12,7 @@ double signed_triangle_area(int ax, int ay, int bx, int by, int cx, int cy) {
     return .5*((by-ay)*(bx+ax) + (cy-by)*(cx+bx) + (ay-cy)*(ax+cx));
 }
 
-void triangle(int ax, int ay, int az, int bx, int by, int bz, int cx, int cy, int cz, TGAImage &zbuffer, TGAImage &framebuffer, TGAColor color) {
+void triangle(int ax, int ay, double az, int bx, int by, double bz, int cx, int cy, double cz, std::vector<double> &zbuffer, TGAImage &framebuffer, TGAColor color) {
     int bbminx = std::max(0, std::min(std::min(ax, bx), cx)); // bounding box for the triangle clipped by the screen
     int bbminy = std::max(0, std::min(std::min(ay, by), cy)); // defined by its top left and bottom right corners
     int bbmaxx = std::min(framebuffer.width() -1, std::max(std::max(ax, bx), cx));
@@ -26,9 +27,9 @@ void triangle(int ax, int ay, int az, int bx, int by, int bz, int cx, int cy, in
             double beta  = signed_triangle_area(x, y, cx, cy, ax, ay) / total_area;
             double gamma = signed_triangle_area(x, y, ax, ay, bx, by) / total_area;
             if (alpha<0 || beta<0 || gamma<0) continue; // negative barycentric coordinate => the pixel is outside the triangle
-            unsigned char z = static_cast<unsigned char>(alpha * az + beta * bz + gamma * cz);
-            if (z <= zbuffer.get(x, y)[0]) continue;
-            zbuffer.set(x, y, {z});
+            double z = alpha * az + beta * bz + gamma * cz;
+            if (z <= zbuffer[x+y*width]) continue;
+            zbuffer[x+y*width] = z;
             framebuffer.set(x, y, color);
         }
     }
@@ -45,10 +46,10 @@ vec3 persp(vec3 v) {
     return v / (1-v.z/c);
 }
 
-std::tuple<int,int,int> project(vec3 v) { // First of all, (x,y) is an orthogonal projection of the vector (x,y,z).
-    return { (v.x + 1.) *  width/2,       // Second, since the input models are scaled to have fit in the [-1,1]^3 world coordinates,
-             (v.y + 1.) * height/2,       // we want to shift the vector (x,y) and then scale it to span the entire screen.
-             (v.z + 1.) *   255./2 };
+std::tuple<int,int,double> project(vec3 v) { // First of all, (x,y) is an orthogonal projection of the vector (x,y,z).
+    return { (v.x + 1.) *  width/2,          // Second, since the input models are scaled to have fit in the [-1,1]^3 world coordinates,
+             (v.y + 1.) * height/2,          // we want to shift the vector (x,y) and then scale it to span the entire screen.
+             v.z };
 }
 
 int main(int argc, char** argv) {
@@ -59,7 +60,7 @@ int main(int argc, char** argv) {
 
     Model model(argv[1]);
     TGAImage framebuffer(width, height, TGAImage::RGB);
-    TGAImage     zbuffer(width, height, TGAImage::GRAYSCALE);
+    std::vector<double> zbuffer(width*height, -std::numeric_limits<double>::max());
 
     for (int i=0; i<model.nfaces(); i++) { // iterate through all triangles
         auto [ax, ay, az] = project(persp(rot(model.vert(i, 0))));
@@ -71,7 +72,6 @@ int main(int argc, char** argv) {
     }
 
     framebuffer.write_tga_file("framebuffer.tga");
-    zbuffer.write_tga_file("zbuffer.tga");
     return 0;
 }
 
