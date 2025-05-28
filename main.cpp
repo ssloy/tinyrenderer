@@ -4,18 +4,18 @@
 #include "model.h"
 #include "tgaimage.h"
 
-mat<4,4> ModelView, Viewport, Projection;
+mat<4,4> ModelView, Viewport, Perspective;
 
 void lookat(const vec3 eye, const vec3 center, const vec3 up) {
-    vec3 k = normalized(eye-center);
-    vec3 i = normalized(cross(up,k));
-    vec3 j = normalized(cross(k, i));
-    ModelView = mat<4,4>{{{i.x,i.y,i.z,0}, {j.x,j.y,j.z,0}, {k.x,k.y,k.z,0}, {0,0,0,1}}} *
+    vec3 n = normalized(eye-center);
+    vec3 l = normalized(cross(up,n));
+    vec3 m = normalized(cross(n, l));
+    ModelView = mat<4,4>{{{l.x,l.y,l.z,0}, {m.x,m.y,m.z,0}, {n.x,n.y,n.z,0}, {0,0,0,1}}} *
                 mat<4,4>{{{1,0,0,-center.x}, {0,1,0,-center.y}, {0,0,1,-center.z}, {0,0,0,1}}};
 }
 
-void projection(const double f) {
-    Projection = {{{1,0,0,0}, {0,1,0,0}, {0,0,1,0}, {0,0, -1/f,1}}};
+void perspective(const double f) {
+    Perspective = {{{1,0,0,0}, {0,1,0,0}, {0,0,1,0}, {0,0, -1/f,1}}};
 }
 
 void viewport(const int x, const int y, const int w, const int h) {
@@ -56,9 +56,9 @@ int main(int argc, char** argv) {
     constexpr vec3 center{0,0,0};  // camera direction
     constexpr vec3     up{0,1,0};  // camera up vector
 
-    lookat(eye, center, up);                              // build the ModelView  matrix
-    projection(norm(eye-center));                         // build the Projection matrix
-    viewport(width/16, height/16, width*7/8, height*7/8); // build the Viewport   matrix
+    lookat(eye, center, up);                              // build the ModelView   matrix
+    perspective(norm(eye-center));                        // build the Perspective matrix
+    viewport(width/16, height/16, width*7/8, height*7/8); // build the Viewport    matrix
 
     TGAImage framebuffer(width, height, TGAImage::RGB);
     std::vector<double> zbuffer(width*height, -std::numeric_limits<double>::max());
@@ -69,7 +69,7 @@ int main(int argc, char** argv) {
             vec4 clip[3];
             for (int d : {0,1,2}) {            // assemble the primitive
                 vec3 v = model.vert(i, d);
-                clip[d] = Projection * ModelView * vec4{v.x, v.y, v.z, 1.};
+                clip[d] = Perspective * ModelView * vec4{v.x, v.y, v.z, 1.};
             }
             TGAColor rnd;
             for (int c=0; c<3; c++) rnd[c] = std::rand()%255;
