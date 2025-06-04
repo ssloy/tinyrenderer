@@ -21,13 +21,16 @@ struct FlatShader : IShader {
     }
 
     virtual std::pair<bool,TGAColor> fragment(const vec3 bar) const {
-       TGAColor gl_FragColor;
+        TGAColor gl_FragColor;
 
-       vec3 n = normalized(cross(tri_eye[1]-tri_eye[0], tri_eye[2]-tri_eye[0])); // triangle normal in eye coordinates
-       double diff = std::max(0., n * uniform_l);                                // diffuse light intensity
+        vec3 n = normalized(cross(tri_eye[1]-tri_eye[0], tri_eye[2]-tri_eye[0])); // triangle normal in eye coordinates
+        vec3 r = normalized(n * (n * uniform_l)*2 - uniform_l);                   // reflected light direction
 
-       for (int i : {0,1,2})
-           gl_FragColor[i] = std::min<int>(30 + 255*diff, 255);   // a bit of ambient light + diffuse light
+        double diff = std::max(0., n * uniform_l);                                // diffuse light intensity
+        double spec = std::pow(std::max(r.z, 0.), 35);                            // specular intensity, note that the camera lies on the z-axis (in eye coordinates), therefore simple r.z
+
+        for (int i : {0,1,2})
+            gl_FragColor[i] = std::min<int>(30 + 255*(diff + spec), 255);   // a bit of ambient light + diffuse light
         return {false, gl_FragColor}; // do not discard the pixel
     }
 };
