@@ -4,28 +4,30 @@
 
 extern mat<4,4> ModelView, Perspective; // "OpenGL" state matrices
 
-struct RandomShader : IShader {
+struct FlatShader : IShader {
     const Model &model;
     vec3 uniform_l; // light direction in clip coordinates
-    TGAColor varying_color[3];
+    vec3 tri_eye[3];
 
-    RandomShader(const vec3 l, const Model &m) : model(m) {
+    FlatShader(const vec3 l, const Model &m) : model(m) {
         uniform_l = normalized((ModelView*vec4{l.x, l.y, l.z, 0.}).xyz()); // transform the light vector to view coordinates
     }
 
     virtual vec4 vertex(const int face, const int vert) {
-        for (int c=0; c<3; c++)
-            varying_color[vert][c] = std::rand()%255;
-        vec3 v = model.vert(face, vert);
+        vec3 v = model.vert(face, vert);                          // current vertex in object coordinates
         vec4 gl_Position = ModelView * vec4{v.x, v.y, v.z, 1.};
-        return Perspective * gl_Position;
+        tri_eye[vert] = gl_Position.xyz();                        // in eye coordinates
+        return Perspective * gl_Position;                         // in clip coordinates
     }
 
     virtual std::pair<bool,TGAColor> fragment(const vec3 bar) const {
        TGAColor gl_FragColor;
-       for (int c : {0,1,2})
-           for (int v : {0,1,2})
-               gl_FragColor[c] += bar[v] * varying_color[v][c];
+
+       vec3 n = normalized(cross(tri_eye[1]-tri_eye[0], tri_eye[2]-tri_eye[0])); // triangle normal in eye coordinates
+       double diff = std::max(0., n * uniform_l);                                // diffuse light intensity
+
+       for (int i : {0,1,2})
+           gl_FragColor[i] = std::min<int>(30 + 255*diff, 255);   // a bit of ambient light + diffuse light
         return {false, gl_FragColor}; // do not discard the pixel
     }
 };
@@ -53,7 +55,7 @@ int main(int argc, char** argv) {
     for (int m=1; m<argc; m++) { // iterate through all input objects
         Model model(argv[m]);
         for (int f=0; f<model.nfaces(); f++) { // iterate through all triangles
-            RandomShader shader(light_dir, model);
+            FlatShader shader(light_dir, model);
             vec4 clip[3];
             for (int v : {0,1,2}) {            // assemble the primitive
                 clip[v] = shader.vertex(f, v);
