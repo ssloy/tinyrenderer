@@ -8,6 +8,7 @@ struct FlatShader : IShader {
     const Model &model;
     vec3 uniform_l; // light direction in clip coordinates
     vec3 tri_eye[3];
+    vec3 varying_nrm[3]; // normal per vertex to be interpolated by FS
 
     FlatShader(const vec3 l, const Model &m) : model(m) {
         uniform_l = normalized((ModelView*vec4{l.x, l.y, l.z, 0.}).xyz()); // transform the light vector to view coordinates
@@ -15,6 +16,8 @@ struct FlatShader : IShader {
 
     virtual vec4 vertex(const int face, const int vert) {
         vec3 v = model.vert(face, vert);                          // current vertex in object coordinates
+        vec3 n = model.normal(face, vert);
+        varying_nrm[vert] = (ModelView.invert_transpose() * vec4{n.x, n.y, n.z, 0.}).xyz();
         vec4 gl_Position = ModelView * vec4{v.x, v.y, v.z, 1.};
         tri_eye[vert] = gl_Position.xyz();                        // in eye coordinates
         return Perspective * gl_Position;                         // in clip coordinates
@@ -22,15 +25,10 @@ struct FlatShader : IShader {
 
     virtual std::pair<bool,TGAColor> fragment(const vec3 bar) const {
         TGAColor gl_FragColor;
-
-        vec3 n = normalized(cross(tri_eye[1]-tri_eye[0], tri_eye[2]-tri_eye[0])); // triangle normal in eye coordinates
-        vec3 r = normalized(n * (n * uniform_l)*2 - uniform_l);                   // reflected light direction
-
+        vec3 n = normalized(varying_nrm[0] * bar[0] + varying_nrm[1] * bar[1] + varying_nrm[2] * bar[2]); // per-vertex normal interpolation
         double diff = std::max(0., n * uniform_l);                                // diffuse light intensity
-        double spec = std::pow(std::max(r.z, 0.), 35);                            // specular intensity, note that the camera lies on the z-axis (in eye coordinates), therefore simple r.z
-
         for (int i : {0,1,2})
-            gl_FragColor[i] = std::min<int>(30 + 255*(diff + spec), 255);   // a bit of ambient light + diffuse light
+            gl_FragColor[i] = std::min<int>(30 + 255*diff, 255);   // a bit of ambient light + diffuse light
         return {false, gl_FragColor}; // do not discard the pixel
     }
 };
