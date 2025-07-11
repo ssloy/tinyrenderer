@@ -35,6 +35,26 @@ struct FlatShader : IShader {
     }
 };
 
+void sobel_edge_detection(const double threshold, const std::vector<double> &zbuffer, TGAImage &framebuffer) {
+    const int Gx[3][3] = { {-1,  0,  1}, {-2, 0, 2}, {-1, 0, 1} };
+    const int Gy[3][3] = { {-1, -2, -1}, { 0, 0, 0}, { 1, 2, 1} };
+
+    for (int y = 1; y < framebuffer.height() - 1; ++y) {
+        for (int x = 1; x < framebuffer.width() - 1; ++x) {
+            double sumX = 0, sumY = 0;
+            for (int j = -1; j <= 1; ++j) {
+                for (int i = -1; i <= 1; ++i) {
+                    sumX += Gx[j + 1][i + 1] * zbuffer[x+i + (y+j)*framebuffer.width()];
+                    sumY += Gy[j + 1][i + 1] * zbuffer[x+i + (y+j)*framebuffer.width()];
+                }
+            }
+	    double norm = std::sqrt(sumX * sumX + sumY * sumY);
+	    if (norm>threshold)
+		    framebuffer.set(x, y, TGAColor{255, 255, 255, 255});
+        }
+    }
+}
+
 int main(int argc, char** argv) {
     if (argc < 2) {
         std::cerr << "Usage: " << argv[0] << " obj/model.obj" << std::endl;
@@ -53,7 +73,7 @@ int main(int argc, char** argv) {
     viewport(width/16, height/16, width*7/8, height*7/8); // build the Viewport    matrix
 
     TGAImage framebuffer(width, height, TGAImage::RGB);
-    std::vector<double> zbuffer(width*height, -std::numeric_limits<double>::max());
+    std::vector<double> zbuffer(width*height, -1000.);
 
     for (int m=1; m<argc; m++) { // iterate through all input objects
         Model model(argv[m]);
@@ -66,8 +86,11 @@ int main(int argc, char** argv) {
             rasterize(clip, shader, zbuffer, framebuffer); // rasterize the primitive
         }
     }
-
     framebuffer.write_tga_file("framebuffer.tga");
+
+    TGAImage edges(width, height, TGAImage::RGB);
+    sobel_edge_detection(.15, zbuffer, edges);
+    edges.write_tga_file("edges.tga");
     return 0;
 }
 
