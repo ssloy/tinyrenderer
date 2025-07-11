@@ -24,14 +24,40 @@ struct FlatShader : IShader {
     }
 
     virtual std::pair<bool,TGAColor> fragment(const vec3 bar) const {
-        TGAColor gl_FragColor;
+        TGAColor gl_FragColor = {2, 58, 240, 255};
         vec3 n = normalized(varying_nrm[0] * bar[0] + varying_nrm[1] * bar[1] + varying_nrm[2] * bar[2]); // per-vertex normal interpolation
-        double diff = std::max(0., n * uniform_l);                                // diffuse light intensity
+        double diff = std::max(0., n * uniform_l); // diffuse light intensity
+
+        double intensity = .15 + diff;   // a bit of ambient light + diffuse light
+        if (intensity>.66) intensity = 1;
+        else if (intensity>.33) intensity = .66;
+        else intensity = .33;
+
         for (int i : {0,1,2})
-            gl_FragColor[i] = std::min<int>(30 + 255*diff, 255);   // a bit of ambient light + diffuse light
+            gl_FragColor[i] = std::min<int>(intensity * gl_FragColor[i], 255);
         return {false, gl_FragColor}; // do not discard the pixel
     }
 };
+
+void sobel_edge_detection(const double threshold, const std::vector<double> &zbuffer, TGAImage &framebuffer) {
+    const int Gx[3][3] = { {-1,  0,  1}, {-2, 0, 2}, {-1, 0, 1} };
+    const int Gy[3][3] = { {-1, -2, -1}, { 0, 0, 0}, { 1, 2, 1} };
+
+    for (int y = 1; y < framebuffer.height() - 1; ++y) {
+        for (int x = 1; x < framebuffer.width() - 1; ++x) {
+            double sumX = 0, sumY = 0;
+            for (int j = -1; j <= 1; ++j) {
+                for (int i = -1; i <= 1; ++i) {
+                    sumX += Gx[j + 1][i + 1] * zbuffer[x+i + (y+j)*framebuffer.width()];
+                    sumY += Gy[j + 1][i + 1] * zbuffer[x+i + (y+j)*framebuffer.width()];
+                }
+            }
+            double norm = std::sqrt(sumX * sumX + sumY * sumY);
+            if (norm>threshold)
+                framebuffer.set(x, y, TGAColor{0, 0, 0, 255});
+        }
+    }
+}
 
 int main(int argc, char** argv) {
     if (argc < 2) {
@@ -51,7 +77,11 @@ int main(int argc, char** argv) {
     viewport(width/16, height/16, width*7/8, height*7/8); // build the Viewport    matrix
 
     TGAImage framebuffer(width, height, TGAImage::RGB);
-    std::vector<double> zbuffer(width*height, -std::numeric_limits<double>::max());
+    for (int y = 0; y < framebuffer.height(); ++y)
+        for (int x = 0; x < framebuffer.width(); ++x)
+            framebuffer.set(x, y, {177, 195, 209, 255});
+
+    std::vector<double> zbuffer(width*height, -1000);
 
     for (int m=1; m<argc; m++) { // iterate through all input objects
         Model model(argv[m]);
@@ -64,6 +94,8 @@ int main(int argc, char** argv) {
             rasterize(clip, shader, zbuffer, framebuffer); // rasterize the primitive
         }
     }
+
+    sobel_edge_detection(.15, zbuffer, framebuffer);
 
     framebuffer.write_tga_file("framebuffer.tga");
     return 0;
