@@ -1,63 +1,28 @@
 #include <limits>
+#include <algorithm>
+#include <random>
 #include "graphics.h"
 #include "model.h"
 
-extern mat<4,4> ModelView, Perspective; // "OpenGL" state matrices
+extern mat<4,4> ModelView, Perspective, Viewport; // "OpenGL" state matrices
 
 struct FlatShader : IShader {
     const Model &model;
-    vec3 uniform_l; // light direction in clip coordinates
-    vec3 tri_eye[3];
-    vec3 varying_nrm[3]; // normal per vertex to be interpolated by FS
 
     FlatShader(const vec3 l, const Model &m) : model(m) {
-        uniform_l = normalized((ModelView*vec4{l.x, l.y, l.z, 0.}).xyz()); // transform the light vector to view coordinates
     }
 
     virtual vec4 vertex(const int face, const int vert) {
         vec3 v = model.vert(face, vert);                          // current vertex in object coordinates
-        vec3 n = model.normal(face, vert);
-        varying_nrm[vert] = (ModelView.invert_transpose() * vec4{n.x, n.y, n.z, 0.}).xyz();
         vec4 gl_Position = ModelView * vec4{v.x, v.y, v.z, 1.};
-        tri_eye[vert] = gl_Position.xyz();                        // in eye coordinates
         return Perspective * gl_Position;                         // in clip coordinates
     }
 
     virtual std::pair<bool,TGAColor> fragment(const vec3 bar) const {
         TGAColor gl_FragColor = {2, 58, 240, 255};
-        vec3 n = normalized(varying_nrm[0] * bar[0] + varying_nrm[1] * bar[1] + varying_nrm[2] * bar[2]); // per-vertex normal interpolation
-        double diff = std::max(0., n * uniform_l); // diffuse light intensity
-
-        double intensity = .15 + diff;   // a bit of ambient light + diffuse light
-        if (intensity>.66) intensity = 1;
-        else if (intensity>.33) intensity = .66;
-        else intensity = .33;
-
-        for (int i : {0,1,2})
-            gl_FragColor[i] = std::min<int>(intensity * gl_FragColor[i], 255);
         return {false, gl_FragColor}; // do not discard the pixel
     }
 };
-
-void sobel_edge_detection(const double threshold, const std::vector<double> &zbuffer, TGAImage &framebuffer) {
-    const int Gx[3][3] = { {-1,  0,  1}, {-2, 0, 2}, {-1, 0, 1} };
-    const int Gy[3][3] = { {-1, -2, -1}, { 0, 0, 0}, { 1, 2, 1} };
-
-    for (int y = 1; y < framebuffer.height() - 1; ++y) {
-        for (int x = 1; x < framebuffer.width() - 1; ++x) {
-            double sumX = 0, sumY = 0;
-            for (int j = -1; j <= 1; ++j) {
-                for (int i = -1; i <= 1; ++i) {
-                    sumX += Gx[j + 1][i + 1] * zbuffer[x+i + (y+j)*framebuffer.width()];
-                    sumY += Gy[j + 1][i + 1] * zbuffer[x+i + (y+j)*framebuffer.width()];
-                }
-            }
-            double norm = std::sqrt(sumX * sumX + sumY * sumY);
-            if (norm>threshold)
-                framebuffer.set(x, y, TGAColor{0, 0, 0, 255});
-        }
-    }
-}
 
 int main(int argc, char** argv) {
     if (argc < 2) {
@@ -95,7 +60,32 @@ int main(int argc, char** argv) {
         }
     }
 
-    sobel_edge_detection(.15, zbuffer, framebuffer);
+    constexpr double ao_radius = .1; // ssao ball radius in normalized device coordinates
+    constexpr int nsamples = 256;    // number of samples in the ball
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::uniform_real_distribution<double> dist(-ao_radius, ao_radius);
+    auto smoothstep = [](double edge0, double edge1, double x) {         // smoothstep returns 0 if the input is less than the left edge,
+            double t = std::clamp((x - edge0)/(edge1 - edge0), 0., 1.);  // 1 if the input is greater than the right edge,
+            return t*t*(3 - 2*t);                                        // Hermite interpolation inbetween. The derivative of the smoothstep function is zero at both edges.
+    };
+
+    for (int x=0; x<width; x++) {
+        for (int y=0; y<height; y++) {
+            vec4 fragment = Viewport.invert() * vec4{x, y, zbuffer[x+y*width], 1};  // for each fragment in the framebuffer
+
+            double occlusion = 0;
+            for(int i=0; i<nsamples; i++) {                                         // compute a very rough approximation of the solid angle
+                vec4 p = Viewport * (fragment + vec4{dist(gen), dist(gen), dist(gen), 0.} );
+                if (p.x<0 || p.x>=width || p.y<0 || p.y>=height) continue;
+                occlusion += zbuffer[int(p.x) + int(p.y)*width] - ao_radius/2 > p.z;
+            }
+            double ssao = smoothstep(.1, .75, 1 - occlusion / nsamples);
+
+            TGAColor c = framebuffer.get(x, y);
+            framebuffer.set(x, y, { c[0]*ssao, c[1]*ssao, c[2]*ssao, c[3] });
+        }
+    }
 
     framebuffer.write_tga_file("framebuffer.tga");
     return 0;
