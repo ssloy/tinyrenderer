@@ -2,7 +2,11 @@
 #include <cstring>
 #include "tgaimage.h"
 
-TGAImage::TGAImage(const int w, const int h, const int bpp) : w(w), h(h), bpp(bpp), data(w*h*bpp, 0) {}
+TGAImage::TGAImage(const int w, const int h, const int bpp, TGAColor c) : w(w), h(h), bpp(bpp), data(w*h*bpp, 0) {
+    for (int j=0; j<h; j++)
+        for (int i=0; i<w; i++)
+            set(i, j, c);
+}
 
 bool TGAImage::read_tga_file(const std::string filename) {
     std::ifstream in;
