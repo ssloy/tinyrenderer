@@ -1,7 +1,6 @@
 #include <fstream>
 #include <sstream>
 #include "model.h"
-#include <algorithm>
 
 Model::Model(const std::string filename) {
     std::ifstream in;
