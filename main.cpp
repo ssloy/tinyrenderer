@@ -23,10 +23,12 @@ struct PhongShader : IShader {
     virtual std::pair<bool,TGAColor> fragment(const vec3 bar) const {
         TGAColor gl_FragColor = {255, 255, 255, 255};             // output color of the fragment
         vec3 n = normalized(cross(tri[1]-tri[0], tri[2]-tri[0])); // triangle normal in eye coordinates
+        vec3 r = normalized(n * (n * l)*2 - l);                   // reflected light direction
         double ambient = .3;                                      // ambient light intensity
         double diff = std::max(0., n * l);                        // diffuse light intensity
+        double spec = std::pow(std::max(r.z, 0.), 35);            // specular intensity, note that the camera lies on the z-axis (in eye coordinates), therefore simple r.z, since (0,0,1)*(r.x, r.y, r.z) = r.z
         for (int channel : {0,1,2})
-            gl_FragColor[channel] *= std::min(1., ambient + .75*diff);
+            gl_FragColor[channel] *= std::min(1., ambient + .4*diff + .9*spec);
         return {false, gl_FragColor};                             // do not discard the pixel
     }
 };
