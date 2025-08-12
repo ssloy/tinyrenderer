@@ -6,9 +6,11 @@ extern std::vector<double> zbuffer;     // the depth buffer
 
 struct PhongShader : IShader {
     const Model &model;
+    vec3 l;          // light direction in eye coordinates
     vec3 tri[3];     // triangle in eye coordinates
 
-    PhongShader(const Model &m) : model(m) {
+    PhongShader(const vec3 light, const Model &m) : model(m) {
+        l = normalized((ModelView*vec4{light.x, light.y, light.z, 0.}).xyz()); // transform the light vector to view coordinates
     }
 
     virtual vec4 vertex(const int face, const int vert) {
@@ -20,9 +22,11 @@ struct PhongShader : IShader {
 
     virtual std::pair<bool,TGAColor> fragment(const vec3 bar) const {
         TGAColor gl_FragColor = {255, 255, 255, 255};             // output color of the fragment
+        vec3 n = normalized(cross(tri[1]-tri[0], tri[2]-tri[0])); // triangle normal in eye coordinates
         double ambient = .3;                                      // ambient light intensity
+        double diff = std::max(0., n * l);                        // diffuse light intensity
         for (int channel : {0,1,2})
-            gl_FragColor[channel] *= std::min(1., ambient);
+            gl_FragColor[channel] *= std::min(1., ambient + .75*diff);
         return {false, gl_FragColor};                             // do not discard the pixel
     }
 };
@@ -35,6 +39,7 @@ int main(int argc, char** argv) {
 
     constexpr int width  = 800;      // output image size
     constexpr int height = 800;
+    constexpr vec3  light{ 1, 1, 1}; // light source
     constexpr vec3    eye{-1, 0, 2}; // camera position
     constexpr vec3 center{ 0, 0, 0}; // camera direction
     constexpr vec3     up{ 0, 1, 0}; // camera up vector
@@ -47,7 +52,7 @@ int main(int argc, char** argv) {
 
     for (int m=1; m<argc; m++) {                    // iterate through all input objects
         Model model(argv[m]);                       // load the data
-        PhongShader shader(model);
+        PhongShader shader(light, model);
         for (int f=0; f<model.nfaces(); f++) {      // iterate through all facets
             Triangle clip = { shader.vertex(f, 0),  // assemble the primitive
                               shader.vertex(f, 1),
