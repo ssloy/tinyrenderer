@@ -6,30 +6,24 @@ extern std::vector<double> zbuffer;     // the depth buffer
 
 struct PhongShader : IShader {
     const Model &model;
-    vec3 l;          // light direction in eye coordinates
-    vec3 tri[3];     // triangle in eye coordinates
-    vec3 varying_nrm[3]; // normal per vertex to be interpolated by the fragment shader
+    vec4 l;              // light direction in eye coordinates
+    vec2 varying_uv[3];  // triangle uv coordinates, written by the vertex shader, read by the fragment shader
 
     PhongShader(const vec3 light, const Model &m) : model(m) {
-        l = normalized((ModelView*vec4{light.x, light.y, light.z, 0.}).xyz()); // transform the light vector to view coordinates
+        l = normalized((ModelView*vec4{light.x, light.y, light.z, 0.})); // transform the light vector to view coordinates
     }
 
     virtual vec4 vertex(const int face, const int vert) {
-        vec3 v = model.vert(face, vert);                          // current vertex in object coordinates
-        vec3 n = model.normal(face, vert);
-        varying_nrm[vert] = (ModelView.invert_transpose() * vec4{n.x, n.y, n.z, 0.}).xyz();
-        vec4 gl_Position = ModelView * vec4{v.x, v.y, v.z, 1.};
-        tri[vert] = gl_Position.xyz();                            // in eye coordinates
+        varying_uv[vert] = model.uv(face, vert);
+        vec4 gl_Position = ModelView * model.vert(face, vert);
         return Perspective * gl_Position;                         // in clip coordinates
     }
 
     virtual std::pair<bool,TGAColor> fragment(const vec3 bar) const {
         TGAColor gl_FragColor = {255, 255, 255, 255};             // output color of the fragment
-//      vec3 n = normalized(cross(tri[1]-tri[0], tri[2]-tri[0])); // triangle normal in eye coordinates
-        vec3 n = normalized(varying_nrm[0] * bar[0] +
-                            varying_nrm[1] * bar[1] +
-                            varying_nrm[2] * bar[2]);             // per-vertex normal interpolation
-        vec3 r = normalized(n * (n * l)*2 - l);                   // reflected light direction
+        vec2 uv = varying_uv[0] * bar[0] + varying_uv[1] * bar[1] + varying_uv[2] * bar[2];
+        vec4 n = normalized(ModelView.invert_transpose() * model.normal(uv));
+        vec4 r = normalized(n * (n * l)*2 - l);                   // reflected light direction
         double ambient = .3;                                      // ambient light intensity
         double diff = std::max(0., n * l);                        // diffuse light intensity
         double spec = std::pow(std::max(r.z, 0.), 35);            // specular intensity, note that the camera lies on the z-axis (in eye coordinates), therefore simple r.z, since (0,0,1)*(r.x, r.y, r.z) = r.z
