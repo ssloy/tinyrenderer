@@ -8,6 +8,7 @@ struct PhongShader : IShader {
     const Model &model;
     vec3 l;          // light direction in eye coordinates
     vec3 tri[3];     // triangle in eye coordinates
+    vec3 varying_nrm[3]; // normal per vertex to be interpolated by the fragment shader
 
     PhongShader(const vec3 light, const Model &m) : model(m) {
         l = normalized((ModelView*vec4{light.x, light.y, light.z, 0.}).xyz()); // transform the light vector to view coordinates
@@ -15,6 +16,8 @@ struct PhongShader : IShader {
 
     virtual vec4 vertex(const int face, const int vert) {
         vec3 v = model.vert(face, vert);                          // current vertex in object coordinates
+        vec3 n = model.normal(face, vert);
+        varying_nrm[vert] = (ModelView.invert_transpose() * vec4{n.x, n.y, n.z, 0.}).xyz();
         vec4 gl_Position = ModelView * vec4{v.x, v.y, v.z, 1.};
         tri[vert] = gl_Position.xyz();                            // in eye coordinates
         return Perspective * gl_Position;                         // in clip coordinates
@@ -22,7 +25,10 @@ struct PhongShader : IShader {
 
     virtual std::pair<bool,TGAColor> fragment(const vec3 bar) const {
         TGAColor gl_FragColor = {255, 255, 255, 255};             // output color of the fragment
-        vec3 n = normalized(cross(tri[1]-tri[0], tri[2]-tri[0])); // triangle normal in eye coordinates
+//      vec3 n = normalized(cross(tri[1]-tri[0], tri[2]-tri[0])); // triangle normal in eye coordinates
+        vec3 n = normalized(varying_nrm[0] * bar[0] +
+                            varying_nrm[1] * bar[1] +
+                            varying_nrm[2] * bar[2]);             // per-vertex normal interpolation
         vec3 r = normalized(n * (n * l)*2 - l);                   // reflected light direction
         double ambient = .3;                                      // ambient light intensity
         double diff = std::max(0., n * l);                        // diffuse light intensity
