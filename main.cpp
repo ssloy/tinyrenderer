@@ -92,8 +92,28 @@ int main(int argc, char** argv) {
             }
         }
     }
-
     framebuffer.write_tga_file("shadow.tga");
+
+    // post-processing 2: edge detection
+    constexpr double threshold = .15;
+    for (int y = 1; y < framebuffer.height() - 1; ++y) {
+        for (int x = 1; x < framebuffer.width() - 1; ++x) {
+            vec2 sum;
+            for (int j = -1; j <= 1; ++j) {
+                for (int i = -1; i <= 1; ++i) {
+                    constexpr int Gx[3][3] = { {-1,  0,  1}, {-2, 0, 2}, {-1, 0, 1} };
+                    constexpr int Gy[3][3] = { {-1, -2, -1}, { 0, 0, 0}, { 1, 2, 1} };
+                    sum = sum + vec2{
+                        Gx[j + 1][i + 1] * zbuffer[x+i + (y+j)*width],
+                        Gy[j + 1][i + 1] * zbuffer[x+i + (y+j)*width]
+                    };
+                }
+            }
+            if (norm(sum)>threshold)
+                framebuffer.set(x, y, TGAColor{0, 0, 0, 255});
+        }
+    }
+    framebuffer.write_tga_file("edges.tga");
 
     return 0;
 }
