@@ -36,11 +36,13 @@ void rasterize(const Triangle &clip, const IShader &shader, TGAImage &framebuffe
 #pragma omp parallel for
     for (int x=std::max<int>(bbminx, 0); x<=std::min<int>(bbmaxx, framebuffer.width()-1); x++) {         // clip the bounding box by the screen
         for (int y=std::max<int>(bbminy, 0); y<=std::min<int>(bbmaxy, framebuffer.height()-1); y++) {
-            vec3 bc = ABC.invert_transpose() * vec3{static_cast<double>(x), static_cast<double>(y), 1.}; // barycentric coordinates of {x,y} w.r.t the triangle
-            if (bc.x<0 || bc.y<0 || bc.z<0) continue;                                                    // negative barycentric coordinate => the pixel is outside the triangle
-            double z = bc * vec3{ ndc[0].z, ndc[1].z, ndc[2].z };  // linear interpolation of the depth
+            vec3 bc_screen = ABC.invert_transpose() * vec3{static_cast<double>(x), static_cast<double>(y), 1.}; // barycentric coordinates of {x,y} w.r.t the triangle
+            vec3 bc_clip   = { bc_screen.x/clip[0].w, bc_screen.y/clip[1].w, bc_screen.z/clip[2].w };     // check https://github.com/ssloy/tinyrenderer/wiki/Technical-difficulties-linear-interpolation-with-perspective-deformations
+            bc_clip = bc_clip / (bc_clip.x + bc_clip.y + bc_clip.z);
+            if (bc_screen.x<0 || bc_screen.y<0 || bc_screen.z<0) continue;                                                    // negative barycentric coordinate => the pixel is outside the triangle
+            double z = bc_screen * vec3{ ndc[0].z, ndc[1].z, ndc[2].z };  // linear interpolation of the depth
             if (z <= zbuffer[x+y*framebuffer.width()]) continue;   // discard fragments that are too deep w.r.t the z-buffer
-            auto [discard, color] = shader.fragment(bc);
+            auto [discard, color] = shader.fragment(bc_clip);
             if (discard) continue;                                 // fragment shader can discard current fragment
             zbuffer[x+y*framebuffer.width()] = z;                  // update the z-buffer
             framebuffer.set(x, y, color);                          // update the framebuffer

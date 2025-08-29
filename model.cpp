@@ -49,6 +49,7 @@ Model::Model(const std::string filename) {
         std::cerr << "texture file " << texfile << " loading " << (img.read_tga_file(texfile.c_str()) ? "ok" : "failed") << std::endl;
     };
     load_texture("_diffuse.tga",    diffusemap );
+//  load_texture("_glow.tga",    diffusemap );
     load_texture("_nm_tangent.tga", normalmap);
     load_texture("_spec.tga",       specularmap);
 }
