@@ -1,4 +1,5 @@
 #include <random>
+#include <algorithm>
 #include <cmath>
 
 #include "our_gl.h"
@@ -65,6 +66,11 @@ int main(int argc, char** argv) {
     std::uniform_real_distribution<double> dist(0.0, 1.0);
     constexpr int n = 1000;
 
+    auto smoothstep = [](double edge0, double edge1, double x) {         // smoothstep returns 0 if the input is less than the left edge,
+            double t = std::clamp((x - edge0)/(edge1 - edge0), 0., 1.);  // 1 if the input is greater than the right edge,
+            return t*t*(3 - 2*t);                                        // Hermite interpolation inbetween. The derivative of the smoothstep function is zero at both edges.
+    };
+
     for (int i = 0; i < n; ++i) {
         std::cerr << i << std::endl;
         double y = dist(gen);
@@ -112,11 +118,10 @@ int main(int argc, char** argv) {
 
     }
 
-
 #pragma omp parallel for
     for (int x=0; x<width; x++) {
         for (int y=0; y<height; y++) {
-            double m = std::min(1., 1.3*mask[x+y*width]);
+            double m = smoothstep(-1, 1, mask[x+y*width]);
             TGAColor c = framebuffer.get(x, y);
             framebuffer.set(x, y, { c[0]*m, c[1]*m, c[2]*m, c[3] });
         }
