@@ -36,7 +36,7 @@ struct PhongShader : IShader {
         vec4 r = normalized(n * (n * l)*2 - l);                   // reflected light direction
         double ambient  = .4;                                     // ambient light intensity
         double diffuse  = 1.*std::max(0., n * l);                 // diffuse light intensity
-        double specular = (3.*sample2D(model.specular(), uv)[0]/255.) * std::pow(std::max(r.z, 0.), 35);  // specular intensity, note that the camera lies on the z-axis (in eye coordinates), therefore simple r.z, since (0,0,1)*(r.x, r.y, r.z) = r.z
+        double specular = (.5+2.*sample2D(model.specular(), uv)[0]/255.) * std::pow(std::max(r.z, 0.), 35);  // specular intensity, note that the camera lies on the z-axis (in eye coordinates), therefore simple r.z, since (0,0,1)*(r.x, r.y, r.z) = r.z
         TGAColor gl_FragColor = sample2D(model.diffuse(), uv);
         for (int channel : {0,1,2})
             gl_FragColor[channel] = std::min<int>(255, gl_FragColor[channel]*(ambient + diffuse + specular));
@@ -61,7 +61,7 @@ int main(int argc, char** argv) {
     init_perspective(norm(eye-center));                        // build the Perspective matrix
     init_viewport(width/16, height/16, width*7/8, height*7/8); // build the Viewport    matrix
     init_zbuffer(width, height);
-    TGAImage framebuffer(width, height, TGAImage::RGB);
+    TGAImage framebuffer(width, height, TGAImage::RGB, {177, 195, 209, 255});
 
     for (int m=1; m<argc; m++) {                    // iterate through all input objects
         Model model(argv[m]);                       // load the data
