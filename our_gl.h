@@ -1,16 +1,18 @@
 #include "tgaimage.h"
 #include "geometry.h"
 
-void viewport(const int x, const int y, const int w, const int h);
-void projection(const double coeff=0); // coeff = -1/c
 void lookat(const vec3 eye, const vec3 center, const vec3 up);
+void init_perspective(const double f);
+void init_viewport(const int x, const int y, const int w, const int h);
+void init_zbuffer(const int width, const int height);
 
 struct IShader {
     static TGAColor sample2D(const TGAImage &img, const vec2 &uvf) {
         return img.get(uvf[0] * img.width(), uvf[1] * img.height());
     }
-    virtual bool fragment(const vec3 bar, TGAColor &color) const = 0;
+    virtual std::pair<bool,TGAColor> fragment(const vec3 bar) const = 0;
 };
 
-void rasterize(const vec4 clip_verts[3], const IShader &shader, TGAImage &image, std::vector<double> &zbuffer);
+typedef vec4 Triangle[3]; // a triangle primitive is made of three ordered points
+void rasterize(const Triangle &clip, const IShader &shader, TGAImage &framebuffer);
 
