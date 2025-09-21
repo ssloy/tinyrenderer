@@ -1,9 +1,0 @@
-image:
-  file: Dockerfile
-tasks:
-- command: >
-    cmake -Bbuild &&
-    cmake --build build --parallel &&
-    build/tinyrenderer obj/diablo3_pose/diablo3_pose.obj obj/floor.obj &&
-    convert framebuffer.tga framebuffer.png &&
-    open framebuffer.png
