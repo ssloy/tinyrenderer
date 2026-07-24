@@ -39,8 +39,8 @@ void rasterize(const Triangle &clip, const IShader &shader, TGAImage &framebuffe
     int bbminy = mmy.first,  bbmaxy = mmy.second;
 #else
     // Default implementation for compilers with OpenMP + C++17 structured binding support
-    auto [bbminx,bbmaxx] = std::minmax({screen[0].x, screen[1].x, screen[2].x});
-    auto [bbminy,bbmaxy] = std::minmax({screen[0].y, screen[1].y, screen[2].y});
+    auto [bbminx,bbmaxx] = std::minmax({screen[0].x, screen[1].x, screen[2].x}); // bounding box of the triangle
+    auto [bbminy,bbmaxy] = std::minmax({screen[0].y, screen[1].y, screen[2].y}); // defined by its top left and bottom right corners
 #endif
 #pragma omp parallel for
     for (int x=std::max<int>(bbminx, 0); x<=std::min<int>(bbmaxx, framebuffer.width()-1); x++) {         // clip the bounding box by the screen
