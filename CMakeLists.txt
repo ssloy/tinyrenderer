@@ -26,4 +26,9 @@ set(SOURCES main.cpp our_gl.cpp model.cpp tgaimage.cpp)
 add_executable(${PROJECT_NAME} ${SOURCES})
 target_link_libraries(${PROJECT_NAME} PRIVATE $<$<BOOL:${OpenMP_CXX_FOUND}>:OpenMP::OpenMP_CXX>)
 
+if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU" AND CMAKE_CXX_COMPILER_VERSION VERSION_LESS 9)
+  message(WARNING "Detected GCC ${CMAKE_CXX_COMPILER_VERSION}: applying workaround for an optimizer ICE in our_gl.cpp")
+  set_source_files_properties(our_gl.cpp PROPERTIES COMPILE_OPTIONS "-O0")
+endif()
+
 file(GENERATE OUTPUT .gitignore CONTENT "*")
